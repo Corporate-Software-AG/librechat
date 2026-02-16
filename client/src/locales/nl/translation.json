@@ -8,7 +8,7 @@
   "com_agents_all": "Alle Agents",
   "com_agents_all_category": "Alle",
   "com_agents_all_description": "Bekijk alle gedeelde agents in alle categorieën",
-  "com_agents_by_librechat": "door LibreChat",
+  "com_agents_by_librechat": "by ASKIA",
   "com_agents_category_aftersales": "After Sales",
   "com_agents_category_aftersales_description": "Agents gespecialiseerd in ondersteuning na verkoop, onderhoud en klantenservice",
   "com_agents_category_empty": "Geen agents gevonden in de {{category}} categorie",
@@ -27,8 +27,8 @@
   "com_agents_category_tab_label": "{{category}} categorie, {{position}} of {{total}}",
   "com_agents_category_tabs_label": "Agentcategorieën",
   "com_agents_clear_search": "Zoekopdracht wissen",
-  "com_agents_code_interpreter": "Indien ingeschakeld, kan je agent de LibreChat Code Interpreter API gebruiken om gegenereerde code, inclusief het verwerken van bestanden, veilig uit te voeren. Vereist een geldige API-sleutel.",
-  "com_agents_code_interpreter_title": "Code Interpreter API",
+  "com_agents_code_interpreter": "When enabled, allows your agent to run generated code securely, including file processing.",
+  "com_agents_code_interpreter_title": "Code Interpreter",
   "com_agents_contact": "Contact",
   "com_agents_copy_link": "Kopieer link",
   "com_agents_create_error": "Er is een fout opgetreden bij het aanmaken van je agent.",
@@ -679,5 +679,9 @@
   "com_ui_x_selected": "{{0}} geselecteerd",
   "com_ui_yes": "Ja",
   "com_ui_zoom": "Zoom",
-  "com_user_message": "Jij"
+  "com_user_message": "Jij",
+  "com_ui_librechat_code_api_title": "Run Code",
+  "com_ui_librechat_code_api_subtitle": "Secure. Multi-language. Input/Output Files.",
+  "com_ui_librechat_code_api_key": "Code Interpreter is configured by your administrator",
+  "com_ui_add_code_interpreter_api_key": ""
 }

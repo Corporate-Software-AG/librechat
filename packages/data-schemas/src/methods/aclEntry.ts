@@ -71,6 +71,16 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
    * @param permissionBit - The permission bit to check (use PermissionBits enum)
    * @returns Whether any of the principals has the permission
    */
+
+  /** Cosmos DB compat: enumerate all values where required bits are set */
+  function cosmosBitsAllSet(requiredBits: number): number[] {
+    const matches: number[] = [];
+    for (let i = 0; i < 16; i++) {
+      if ((i & requiredBits) === requiredBits) matches.push(i);
+    }
+    return matches;
+  }
+
   async function hasPermission(
     principalsList: Array<{ principalType: string; principalId?: string | Types.ObjectId }>,
     resourceType: string,
@@ -87,7 +97,7 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
       $or: principalsQuery,
       resourceType,
       resourceId,
-      permBits: { $bitsAllSet: permissionBit },
+      permBits: { $in: cosmosBitsAllSet(permissionBit) },
     }).lean();
 
     return !!entry;
@@ -302,15 +312,16 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
 
     const update: Record<string, unknown> = {};
 
+    // Cosmos DB compat: read-modify-write instead of $bit operator
+    const existing = await AclEntry.findOne(query, { permBits: 1 }, session ? { session } : {});
+    let currentBits = existing?.permBits ?? 0;
     if (addBits) {
-      update.$bit = { permBits: { or: addBits } };
+      currentBits = currentBits | addBits;
     }
-
     if (removeBits) {
-      if (!update.$bit) update.$bit = {};
-      const bitUpdate = update.$bit as Record<string, unknown>;
-      bitUpdate.permBits = { ...(bitUpdate.permBits as Record<string, unknown>), and: ~removeBits };
+      currentBits = currentBits & ~removeBits;
     }
+    update.$set = { ...(update.$set as Record<string, unknown> || {}), permBits: currentBits };
 
     const options = {
       new: true,
@@ -341,7 +352,7 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
     const entries = await AclEntry.find({
       $or: principalsQuery,
       resourceType,
-      permBits: { $bitsAllSet: requiredPermBit },
+      permBits: { $in: cosmosBitsAllSet(requiredPermBit) },
     }).distinct('resourceId');
 
     return entries;

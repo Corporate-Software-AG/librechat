@@ -1,3 +1,12 @@
+/** Cosmos DB compat: enumerate all values where required bits are set */
+function cosmosBitsAllSet(requiredBits) {
+  const matches = [];
+  for (let i = 0; i < 16; i++) {
+    if ((i & requiredBits) === requiredBits) matches.push(i);
+  }
+  return matches;
+}
+
 const mongoose = require('mongoose');
 const { isEnabled } = require('@librechat/api');
 const { getTransactionSupport, logger } = require('@librechat/data-schemas');
@@ -281,7 +290,7 @@ const findPubliclyAccessibleResources = async ({ resourceType, requiredPermissio
     const entries = await AclEntry.find({
       principalType: PrincipalType.PUBLIC,
       resourceType,
-      permBits: { $bitsAllSet: requiredPermissions },
+      permBits: { $in: cosmosBitsAllSet(requiredPermissions) },
     }).distinct('resourceId');
 
     return entries;

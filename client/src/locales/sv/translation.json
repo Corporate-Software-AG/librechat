@@ -5,7 +5,7 @@
   "com_a11y_end": "AI har avslutat sitt svar.",
   "com_a11y_start": "AI har påbörjat sitt svar.",
   "com_agents_all_category": "Alla",
-  "com_agents_by_librechat": "av LibreChat",
+  "com_agents_by_librechat": "by ASKIA",
   "com_agents_category_aftersales": "Efter försäljningen",
   "com_agents_category_aftersales_description": "Agenter som är specialiserade på support, underhåll och kundservice efter försäljning",
   "com_agents_category_empty": "Inga agenter hittades i {{category}} kategorin",
@@ -23,8 +23,8 @@
   "com_agents_category_tab_label": "{{category}} kategori, {{position}} av {{total}} ",
   "com_agents_category_tabs_label": "Agentkategorier",
   "com_agents_clear_search": "Rensa sökningen",
-  "com_agents_code_interpreter": "När den är aktiverad kan din agent utnyttja LibreChat API för kodtolkning för att köra genererad kod, inklusive filbehandling, på ett säkert sätt. Kräver en giltig API-nyckel.",
-  "com_agents_code_interpreter_title": "Kodtolk för API ",
+  "com_agents_code_interpreter": "When enabled, allows your agent to run generated code securely, including file processing.",
+  "com_agents_code_interpreter_title": "Code Interpreter",
   "com_agents_contact": "Kontakt",
   "com_agents_copy_link": "Kopiera länk",
   "com_agents_create_error": "Det uppstod ett fel vid skapandet av din agent.",
@@ -524,5 +524,9 @@
   "com_ui_terms_and_conditions": "Villkor för användning",
   "com_ui_unarchive": "Avarkivera",
   "com_ui_unarchive_error": "Kunde inte avarkivera chatt",
-  "com_ui_upload_success": "Uppladdningen av filen lyckades"
+  "com_ui_upload_success": "Uppladdningen av filen lyckades",
+  "com_ui_librechat_code_api_title": "Run Code",
+  "com_ui_librechat_code_api_subtitle": "Secure. Multi-language. Input/Output Files.",
+  "com_ui_librechat_code_api_key": "Code Interpreter is configured by your administrator",
+  "com_ui_add_code_interpreter_api_key": ""
 }
