@@ -1,14 +1,7 @@
 import { Types } from 'mongoose';
-import { PrincipalType, PrincipalModel, PermissionBits } from 'librechat-data-provider';
-import type {
-  AnyBulkWriteOperation,
-  ClientSession,
-  PipelineStage,
-  DeleteResult,
-  Model,
-} from 'mongoose';
-import type { AclEntry, IAclEntry } from '~/types';
-import { tenantSafeBulkWrite } from '~/utils/tenantBulkWrite';
+import { PrincipalType, PrincipalModel } from 'librechat-data-provider';
+import type { Model, DeleteResult, ClientSession } from 'mongoose';
+import type { IAclEntry } from '~/types';
 
 export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
   /**
@@ -78,6 +71,16 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
    * @param permissionBit - The permission bit to check (use PermissionBits enum)
    * @returns Whether any of the principals has the permission
    */
+
+  /** Cosmos DB compat: enumerate all values where required bits are set */
+  function cosmosBitsAllSet(requiredBits: number): number[] {
+    const matches: number[] = [];
+    for (let i = 0; i < 16; i++) {
+      if ((i & requiredBits) === requiredBits) matches.push(i);
+    }
+    return matches;
+  }
+
   async function hasPermission(
     principalsList: Array<{ principalType: string; principalId?: string | Types.ObjectId }>,
     resourceType: string,
@@ -94,7 +97,7 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
       $or: principalsQuery,
       resourceType,
       resourceId,
-      permBits: { $bitsAllSet: permissionBit },
+      permBits: { $in: cosmosBitsAllSet(permissionBit) },
     }).lean();
 
     return !!entry;
@@ -309,17 +312,16 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
 
     const update: Record<string, unknown> = {};
 
+    // Cosmos DB compat: read-modify-write instead of $bit operator
+    const existing = await AclEntry.findOne(query, { permBits: 1 }, session ? { session } : {});
+    let currentBits = existing?.permBits ?? 0;
     if (addBits) {
-      update.$bit = { permBits: { or: addBits } };
+      currentBits = currentBits | addBits;
     }
-
     if (removeBits) {
-      if (!update.$bit) {
-        update.$bit = {};
-      }
-      const bitUpdate = update.$bit as Record<string, unknown>;
-      bitUpdate.permBits = { ...(bitUpdate.permBits as Record<string, unknown>), and: ~removeBits };
+      currentBits = currentBits & ~removeBits;
     }
+    update.$set = { ...(update.$set as Record<string, unknown> || {}), permBits: currentBits };
 
     const options = {
       new: true,
@@ -350,109 +352,10 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
     const entries = await AclEntry.find({
       $or: principalsQuery,
       resourceType,
-      permBits: { $bitsAllSet: requiredPermBit },
+      permBits: { $in: cosmosBitsAllSet(requiredPermBit) },
     }).distinct('resourceId');
 
     return entries;
-  }
-
-  /**
-   * Deletes ACL entries matching the given filter.
-   * @param filter - MongoDB filter query
-   * @param options - Optional query options (e.g., { session })
-   */
-  async function deleteAclEntries(
-    filter: Record<string, unknown>,
-    options?: { session?: ClientSession },
-  ): Promise<DeleteResult> {
-    const AclEntry = mongoose.models.AclEntry as Model<IAclEntry>;
-    return AclEntry.deleteMany(filter, options || {});
-  }
-
-  /**
-   * Performs a bulk write operation on ACL entries.
-   * @param ops - Array of bulk write operations
-   * @param options - Optional query options (e.g., { session })
-   */
-  async function bulkWriteAclEntries(
-    ops: AnyBulkWriteOperation<AclEntry>[],
-    options?: { session?: ClientSession },
-  ) {
-    const AclEntry = mongoose.models.AclEntry as Model<IAclEntry>;
-    return tenantSafeBulkWrite(AclEntry, ops as AnyBulkWriteOperation[], options || {});
-  }
-
-  /**
-   * Finds all publicly accessible resource IDs for a given resource type.
-   * @param resourceType - The type of resource
-   * @param requiredPermissions - Required permission bits
-   */
-  async function findPublicResourceIds(
-    resourceType: string,
-    requiredPermissions: number,
-  ): Promise<Types.ObjectId[]> {
-    const AclEntry = mongoose.models.AclEntry as Model<IAclEntry>;
-    return AclEntry.find({
-      principalType: PrincipalType.PUBLIC,
-      resourceType,
-      permBits: { $bitsAllSet: requiredPermissions },
-    }).distinct('resourceId');
-  }
-
-  /**
-   * Runs an aggregation pipeline on the AclEntry collection.
-   * @param pipeline - MongoDB aggregation pipeline stages
-   */
-  async function aggregateAclEntries(pipeline: PipelineStage[]) {
-    const AclEntry = mongoose.models.AclEntry as Model<IAclEntry>;
-    return AclEntry.aggregate(pipeline);
-  }
-
-  /**
-   * Returns resource IDs solely owned by the given user (no other principals
-   * hold DELETE on the same resource). Handles both single and array resource types.
-   */
-  async function getSoleOwnedResourceIds(
-    userObjectId: Types.ObjectId,
-    resourceTypes: string | string[],
-  ): Promise<Types.ObjectId[]> {
-    const AclEntry = mongoose.models.AclEntry as Model<IAclEntry>;
-    const types = Array.isArray(resourceTypes) ? resourceTypes : [resourceTypes];
-
-    const ownedEntries = await AclEntry.find({
-      principalType: PrincipalType.USER,
-      principalId: userObjectId,
-      resourceType: { $in: types },
-      permBits: { $bitsAllSet: PermissionBits.DELETE },
-    })
-      .select('resourceId')
-      .lean();
-
-    if (ownedEntries.length === 0) {
-      return [];
-    }
-
-    const ownedIds = ownedEntries.map((e) => e.resourceId);
-
-    const otherOwners = await AclEntry.aggregate([
-      {
-        $match: {
-          resourceType: { $in: types },
-          resourceId: { $in: ownedIds },
-          permBits: { $bitsAllSet: PermissionBits.DELETE },
-          $or: [
-            { principalId: { $ne: userObjectId } },
-            { principalType: { $ne: PrincipalType.USER } },
-          ],
-        },
-      },
-      { $group: { _id: '$resourceId' } },
-    ]);
-
-    const multiOwnerIds = new Set(
-      otherOwners.map((doc: { _id: Types.ObjectId }) => doc._id.toString()),
-    );
-    return ownedIds.filter((id) => !multiOwnerIds.has(id.toString()));
   }
 
   return {
@@ -466,11 +369,6 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
     revokePermission,
     modifyPermissionBits,
     findAccessibleResources,
-    deleteAclEntries,
-    bulkWriteAclEntries,
-    findPublicResourceIds,
-    aggregateAclEntries,
-    getSoleOwnedResourceIds,
   };
 }
 

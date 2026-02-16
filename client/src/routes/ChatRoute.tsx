@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRecoilCallback, useRecoilValue } from 'recoil';
+import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
 import { Spinner, useToastContext } from '@librechat/client';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Constants, EModelEndpoint } from 'librechat-data-provider';
@@ -63,6 +63,16 @@ export default function ChatRoute() {
   const assistantListMap = useAssistantListMap();
 
   const isTemporaryChat = conversation && conversation.expiredAt ? true : false;
+
+  // Auto-enable temporary chat for endpoints with temporaryChat: true (e.g., Apple Intelligence)
+  const endpointsConfig = endpointsQuery.data;
+  const setDefaultTemporary = useSetRecoilState(store.defaultTemporaryChat);
+  const currentEndpointConfig = endpointsConfig?.[conversation?.endpoint ?? ''];
+  useEffect(() => {
+    if (currentEndpointConfig?.temporaryChat === true) {
+      setDefaultTemporary(true);
+    }
+  }, [currentEndpointConfig?.temporaryChat, setDefaultTemporary]);
 
   useEffect(() => {
     if (conversationId === Constants.NEW_CONVO) {

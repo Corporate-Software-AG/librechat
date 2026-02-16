@@ -4,7 +4,7 @@
   "com_a11y_ai_composing": "AI sedang menulis.",
   "com_a11y_end": "AI sudah selesai membalas.",
   "com_a11y_start": "AI telah mulai membalas.",
-  "com_agents_by_librechat": "oleh LibreChat",
+  "com_agents_by_librechat": "by ASKIA",
   "com_auth_already_have_account": "Sudah memiliki akun?",
   "com_auth_click": "Klik",
   "com_auth_click_here": "Klik di sini",
@@ -270,5 +270,11 @@
   "com_ui_upload": "Unggah",
   "com_ui_upload_error": "Ada kesalahan saat mengunggah file Anda",
   "com_ui_upload_success": "Berhasil mengunggah file",
-  "com_user_message": "Kamu"
+  "com_user_message": "Kamu",
+  "com_agents_code_interpreter": "When enabled, allows your agent to run generated code securely, including file processing.",
+  "com_agents_code_interpreter_title": "Code Interpreter",
+  "com_ui_librechat_code_api_title": "Run Code",
+  "com_ui_librechat_code_api_subtitle": "Secure. Multi-language. Input/Output Files.",
+  "com_ui_librechat_code_api_key": "Code Interpreter is configured by your administrator",
+  "com_ui_add_code_interpreter_api_key": ""
 }

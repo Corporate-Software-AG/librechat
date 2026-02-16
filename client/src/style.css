@@ -2976,3 +2976,46 @@ html {
 .sharepoint-picker-bg {
   background-color: #f5f5f5;
 }
+
+/* === ASKIA-OVERRIDES-START === */
+/*
+ * ASKIA Light — CSS Theme Overrides
+ *
+ * This file is injected into index.html via <link> and loaded AFTER the main
+ * LibreChat stylesheet. Any CSS custom properties declared here override the
+ * defaults from style.css.
+ *
+ * Primary brand color: #2d6586 (teal blue)
+ * Palette derived from that base:
+ *   50:  #edf4f8   (very light tint — backgrounds)
+ *   100: #d0e3ee   (light tint — hover states)
+ *   200: #a1c7dd   (lighter — borders, subtle accents)
+ *   300: #6ba4c4   (medium light — secondary accents)
+ *   400: #4488aa   (medium — links, active states in dark)
+ *   500: #2d6586   (base — THE brand color)
+ *   600: #24526d   (slightly darker — hover on brand)
+ *   700: #1b3f54   (dark — pressed states)
+ *   800: #132c3b   (very dark — dark mode surfaces)
+ *   900: #0a1a24   (near black)
+ */
+
+/* === Light theme overrides === */
+html {
+    /* Accent color — selected items, active toggles, focused rings, links */
+    --brand-purple: #2d6586;
+
+    /* Send button — brand-colored instead of default green */
+    --surface-submit: #2d6586;
+    --surface-submit-hover: #24526d;
+}
+
+/* === Dark theme overrides === */
+.dark {
+    /* Lighter tint for readability on dark backgrounds */
+    --brand-purple: #4488aa;
+
+    /* Send button stays consistent across themes */
+    --surface-submit: #2d6586;
+    --surface-submit-hover: #24526d;
+}
+/* === ASKIA-OVERRIDES-END === */

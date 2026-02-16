@@ -5,9 +5,9 @@
   "com_a11y_end": "Yapay zeka yanıtını tamamladı.",
   "com_a11y_start": "Yapay zeka yanıtlamaya başladı.",
   "com_agents_all_category": "Hepsi",
-  "com_agents_by_librechat": "LibreChat tarafından",
-  "com_agents_code_interpreter": "Etkinleştirildiğinde, ajanınızın oluşturulan kodu çalıştırması ve dosya işleme dahil olmak üzere LibreChat Kod Yorumlayıcı API'sini güvenli bir şekilde kullanmasına olanak tanır. Geçerli bir API anahtarı gerektirir.",
-  "com_agents_code_interpreter_title": "Kod Yorumlayıcı API",
+  "com_agents_by_librechat": "by ASKIA",
+  "com_agents_code_interpreter": "When enabled, allows your agent to run generated code securely, including file processing.",
+  "com_agents_code_interpreter_title": "Code Interpreter",
   "com_agents_create_error": "Ajanınız oluşturulurken bir hata oluştu.",
   "com_agents_description_placeholder": "İsteğe bağlı: Ajanınızı burada tanımlayın",
   "com_agents_enable_file_search": "Dosya Aramayı Etkinleştir",
@@ -570,9 +570,9 @@
   "com_ui_instructions": "Talimatlar",
   "com_ui_latest_footer": "Herkes için Her Yapay Zeka.",
   "com_ui_latest_version": "En son sürüm",
-  "com_ui_librechat_code_api_key": "LibreChat Kod Yorumlayıcı API anahtarınızı alın",
-  "com_ui_librechat_code_api_subtitle": "Güvenli. Çoklu dil. Giriş/Çıkış Dosyaları.",
-  "com_ui_librechat_code_api_title": "Yapay Zeka Kodu Çalıştır",
+  "com_ui_librechat_code_api_key": "Code Interpreter is configured by your administrator",
+  "com_ui_librechat_code_api_subtitle": "Secure. Multi-language. Input/Output Files.",
+  "com_ui_librechat_code_api_title": "Run Code",
   "com_ui_locked": "Kilitli",
   "com_ui_logo": "{{0}} Logosu",
   "com_ui_manage": "Yönet",
@@ -687,5 +687,6 @@
   "com_ui_versions": "Sürümler",
   "com_ui_yes": "Evet",
   "com_ui_zoom": "Yakınlaştır",
-  "com_user_message": "Sen"
+  "com_user_message": "Sen",
+  "com_ui_add_code_interpreter_api_key": ""
 }

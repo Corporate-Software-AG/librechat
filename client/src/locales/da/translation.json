@@ -4,9 +4,9 @@
   "com_a11y_ai_composing": "AI'en komponerer stadig.",
   "com_a11y_end": "AI'en er færdig med sit svar.",
   "com_a11y_start": "AI'en er begyndt at svare.",
-  "com_agents_by_librechat": "af LibreChat",
-  "com_agents_code_interpreter": "Når den er aktiveret, kan din agent bruge LibreChat Code Interpreter API til at køre genereret kode, herunder filbehandling, sikkert. Kræver en gyldig API-nøgle.",
-  "com_agents_code_interpreter_title": "Kodefortolker API",
+  "com_agents_by_librechat": "by ASKIA",
+  "com_agents_code_interpreter": "When enabled, allows your agent to run generated code securely, including file processing.",
+  "com_agents_code_interpreter_title": "Code Interpreter",
   "com_agents_create_error": "Der opstod en fejl ved oprettelsen af din agent.",
   "com_agents_description_placeholder": "Valgfrit: Beskriv din agent her",
   "com_agents_enable_file_search": "Aktivér filsøgning",
@@ -708,9 +708,9 @@
   "com_ui_late_night": "Glædelig sen aften",
   "com_ui_latest_footer": "Hver eneste AI for alle.",
   "com_ui_latest_version": "Seneste version",
-  "com_ui_librechat_code_api_key": "Få din LibreChat Code Interpreter API-nøgle",
-  "com_ui_librechat_code_api_subtitle": "Sikkert. Flersproget. Input/output-filer.",
-  "com_ui_librechat_code_api_title": "Kør AI-kode",
+  "com_ui_librechat_code_api_key": "Code Interpreter is configured by your administrator",
+  "com_ui_librechat_code_api_subtitle": "Secure. Multi-language. Input/Output Files.",
+  "com_ui_librechat_code_api_title": "Run Code",
   "com_ui_loading": "Indlæser...",
   "com_ui_locked": "Låst",
   "com_ui_logo": "{{0}} Logo",
@@ -884,5 +884,6 @@
   "com_ui_x_selected": "{{0}} udvalgt",
   "com_ui_yes": "Ja",
   "com_ui_zoom": "Zoom",
-  "com_user_message": "Du"
+  "com_user_message": "Du",
+  "com_ui_add_code_interpreter_api_key": ""
 }
