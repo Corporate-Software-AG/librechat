@@ -297,7 +297,6 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
       formData.append('message_file', 'true');
     }
 
-    const endpointsConfig = queryClient.getQueryData<TEndpointsConfig>([QueryKeys.endpoints]);
     const version = endpointsConfig?.[endpoint]?.version ?? defaultAssistantsVersion[endpoint];
 
     if (!assistant_id && convoAssistantId) {
