@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { SettingsTabValues } from 'librechat-data-provider';
-import { MessageSquare, Command, DollarSign } from 'lucide-react';
+import { MessageSquare, Command, DollarSign, Cpu } from 'lucide-react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import {
   GearIcon,
@@ -18,6 +18,7 @@ import {
   Commands,
   Speech,
   Personalization,
+  Providers,
   Data,
   Balance,
   Account,
@@ -42,6 +43,7 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       SettingsTabValues.COMMANDS,
       SettingsTabValues.SPEECH,
       ...(hasAnyPersonalizationFeature ? [SettingsTabValues.PERSONALIZATION] : []),
+      SettingsTabValues.PROVIDERS,
       SettingsTabValues.DATA,
       ...(startupConfig?.balance?.enabled ? [SettingsTabValues.BALANCE] : []),
       SettingsTabValues.ACCOUNT,
@@ -73,55 +75,60 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
     icon: React.JSX.Element;
     label: TranslationKeys;
   }[] = [
-    {
-      value: SettingsTabValues.GENERAL,
-      icon: <GearIcon />,
-      label: 'com_nav_setting_general',
-    },
-    {
-      value: SettingsTabValues.CHAT,
-      icon: <MessageSquare className="icon-sm" aria-hidden="true" />,
-      label: 'com_nav_setting_chat',
-    },
-    {
-      value: SettingsTabValues.COMMANDS,
-      icon: <Command className="icon-sm" aria-hidden="true" />,
-      label: 'com_nav_commands',
-    },
-    {
-      value: SettingsTabValues.SPEECH,
-      icon: <SpeechIcon className="icon-sm" aria-hidden="true" />,
-      label: 'com_nav_setting_speech',
-    },
-    ...(hasAnyPersonalizationFeature
-      ? [
+      {
+        value: SettingsTabValues.GENERAL,
+        icon: <GearIcon />,
+        label: 'com_nav_setting_general',
+      },
+      {
+        value: SettingsTabValues.CHAT,
+        icon: <MessageSquare className="icon-sm" aria-hidden="true" />,
+        label: 'com_nav_setting_chat',
+      },
+      {
+        value: SettingsTabValues.COMMANDS,
+        icon: <Command className="icon-sm" aria-hidden="true" />,
+        label: 'com_nav_commands',
+      },
+      {
+        value: SettingsTabValues.SPEECH,
+        icon: <SpeechIcon className="icon-sm" aria-hidden="true" />,
+        label: 'com_nav_setting_speech',
+      },
+      ...(hasAnyPersonalizationFeature
+        ? [
           {
             value: SettingsTabValues.PERSONALIZATION,
             icon: <PersonalizationIcon />,
             label: 'com_nav_setting_personalization' as TranslationKeys,
           },
         ]
-      : []),
-    {
-      value: SettingsTabValues.DATA,
-      icon: <DataIcon />,
-      label: 'com_nav_setting_data',
-    },
-    ...(startupConfig?.balance?.enabled
-      ? [
+        : []),
+      {
+        value: SettingsTabValues.PROVIDERS,
+        icon: <Cpu className="icon-sm" aria-hidden="true" />,
+        label: 'com_nav_setting_providers',
+      },
+      {
+        value: SettingsTabValues.DATA,
+        icon: <DataIcon />,
+        label: 'com_nav_setting_data',
+      },
+      ...(startupConfig?.balance?.enabled
+        ? [
           {
             value: SettingsTabValues.BALANCE,
             icon: <DollarSign size={18} />,
             label: 'com_nav_setting_balance' as TranslationKeys,
           },
         ]
-      : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
-    {
-      value: SettingsTabValues.ACCOUNT,
-      icon: <UserIcon />,
-      label: 'com_nav_setting_account',
-    },
-  ];
+        : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
+      {
+        value: SettingsTabValues.ACCOUNT,
+        icon: <UserIcon />,
+        label: 'com_nav_setting_account',
+      },
+    ];
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as SettingsTabValues);
@@ -240,6 +247,9 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                         />
                       </Tabs.Content>
                     )}
+                    <Tabs.Content value={SettingsTabValues.PROVIDERS} tabIndex={-1}>
+                      <Providers />
+                    </Tabs.Content>
                     <Tabs.Content value={SettingsTabValues.DATA} tabIndex={-1}>
                       <Data />
                     </Tabs.Content>

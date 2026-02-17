@@ -73,6 +73,9 @@ const localStorageAtoms = {
 
   // Account settings
   UsernameDisplay: atomWithLocalStorage('UsernameDisplay', true),
+
+  // Providers settings
+  enableAppleIntelligence: atomWithLocalStorage('enableAppleIntelligence', false),
 };
 
 export default { ...staticAtoms, ...localStorageAtoms };

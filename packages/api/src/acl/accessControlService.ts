@@ -2,15 +2,6 @@ import { Types, ClientSession, DeleteResult } from 'mongoose';
 import { AllMethods, IAclEntry, createMethods, logger } from '@librechat/data-schemas';
 import { AccessRoleIds, PrincipalType, ResourceType } from 'librechat-data-provider';
 
-/** Cosmos DB compat: enumerate all values where required bits are set */
-function cosmosBitsAllSet(requiredBits: number): number[] {
-  const matches: number[] = [];
-  for (let i = 0; i < 16; i++) {
-    if ((i & requiredBits) === requiredBits) matches.push(i);
-  }
-  return matches;
-}
-
 export class AccessControlService {
   private _dbMethods: AllMethods;
   private _aclModel;
@@ -188,7 +179,7 @@ export class AccessControlService {
         .find({
           principalType: PrincipalType.PUBLIC,
           resourceType,
-          permBits: { $in: cosmosBitsAllSet(requiredPermissions) },
+          permBits: { $bitsAllSet: requiredPermissions },
         })
         .distinct('resourceId');
 

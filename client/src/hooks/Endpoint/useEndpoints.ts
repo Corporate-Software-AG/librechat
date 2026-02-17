@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
+import { useRecoilValue } from 'recoil';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';
 import {
   Permissions,
@@ -19,6 +20,7 @@ import { useGetEndpointsQuery } from '~/data-provider';
 import { mapEndpoints, getIconKey } from '~/utils';
 import { useHasAccess } from '~/hooks';
 import { icons } from './Icons';
+import store from '~/store';
 
 export const useEndpoints = ({
   agents,
@@ -44,6 +46,8 @@ export const useEndpoints = ({
     permission: Permissions.USE,
   });
 
+  const enableAppleIntelligence = useRecoilValue(store.enableAppleIntelligence);
+
   const assistants: Assistant[] = useMemo(
     () => Object.values(assistantsMap?.[EModelEndpoint.assistants] ?? {}),
     [assistantsMap],
@@ -66,11 +70,26 @@ export const useEndpoints = ({
       if (includedEndpoints.size > 0 && !includedEndpoints.has(endpoints[i])) {
         continue;
       }
+      // Hide local inference endpoints (e.g., Apple Intelligence) when disabled in Providers settings
+      const epConfig = endpointsConfig?.[endpoints[i]];
+      if (
+        (epConfig as Record<string, unknown>)?.localInference === true &&
+        !enableAppleIntelligence
+      ) {
+        continue;
+      }
       result.push(endpoints[i]);
     }
 
     return result;
-  }, [endpoints, hasAgentAccess, includedEndpoints, interfaceConfig.modelSelect]);
+  }, [
+    endpoints,
+    hasAgentAccess,
+    includedEndpoints,
+    interfaceConfig.modelSelect,
+    endpointsConfig,
+    enableAppleIntelligence,
+  ]);
 
   const endpointRequiresUserKey = useCallback(
     (ep: string) => {
@@ -99,11 +118,11 @@ export const useEndpoints = ({
         hasModels,
         icon: Icon
           ? React.createElement(Icon, {
-              size: 20,
-              className: 'text-text-primary shrink-0 icon-md',
-              iconURL: endpointIconURL,
-              endpoint: ep,
-            })
+            size: 20,
+            className: 'text-text-primary shrink-0 icon-md',
+            iconURL: endpointIconURL,
+            endpoint: ep,
+          })
           : null,
       };
 
