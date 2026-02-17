@@ -29,6 +29,13 @@ function AttachFileChat({
 
   const agentsMap = useAgentsMapContext();
 
+  // Check if this endpoint uses local inference (e.g., Apple Intelligence)
+  const { data: endpointsConfig } = useGetEndpointsQuery();
+  const isLocalInference = useMemo(
+    () => endpointsConfig?.[endpoint ?? '']?.localInference === true,
+    [endpointsConfig, endpoint],
+  );
+
   const needsAgentFetch = useMemo(() => {
     if (!isAgents || !conversation?.agent_id) {
       return false;
@@ -52,8 +59,6 @@ function AttachFileChat({
   const { data: fileConfig = null } = useGetFileConfig({
     select: (data) => mergeFileConfig(data),
   });
-
-  const { data: endpointsConfig } = useGetEndpointsQuery();
 
   const endpointType = useMemo(() => {
     return (
@@ -79,6 +84,21 @@ function AttachFileChat({
     () => (disableInputs || endpointFileConfig?.disabled) ?? false,
     [disableInputs, endpointFileConfig?.disabled],
   );
+
+  // Local inference endpoints always show the upload button (for document upload)
+  if (isLocalInference) {
+    return (
+      <AttachFileMenu
+        endpoint={endpoint}
+        disabled={disableInputs}
+        endpointType={endpointType}
+        conversationId={conversationId}
+        agentId={conversation?.agent_id}
+        endpointFileConfig={endpointFileConfig}
+        isLocalInference={true}
+      />
+    );
+  }
 
   if (isAssistants && endpointSupportsFiles && !isUploadDisabled) {
     return <AttachFile disabled={disableInputs} />;

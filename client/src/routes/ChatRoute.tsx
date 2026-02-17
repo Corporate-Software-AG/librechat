@@ -51,11 +51,14 @@ export default function ChatRoute() {
   const endpointsConfig = endpointsQuery.data;
   const setDefaultTemporary = useSetRecoilState(store.defaultTemporaryChat);
   const currentEndpointConfig = endpointsConfig?.[conversation?.endpoint ?? ''];
+  const forcedTemporary = currentEndpointConfig?.temporaryChat === true;
   useEffect(() => {
-    if (currentEndpointConfig?.temporaryChat === true) {
+    if (forcedTemporary) {
       setDefaultTemporary(true);
+    } else {
+      setDefaultTemporary(false);
     }
-  }, [currentEndpointConfig?.temporaryChat, setDefaultTemporary]);
+  }, [forcedTemporary, setDefaultTemporary]);
 
   useEffect(() => {
     if (conversationId === Constants.NEW_CONVO) {

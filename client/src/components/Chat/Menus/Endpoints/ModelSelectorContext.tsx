@@ -1,5 +1,6 @@
 import debounce from 'lodash/debounce';
 import React, { createContext, useContext, useState, useMemo } from 'react';
+import { useRecoilValue } from 'recoil';
 import { EModelEndpoint, isAgentsEndpoint, isAssistantsEndpoint } from 'librechat-data-provider';
 import type * as t from 'librechat-data-provider';
 import type { Endpoint, SelectedValues } from '~/common';
@@ -14,6 +15,7 @@ import { useGetEndpointsQuery, useListAgentsQuery } from '~/data-provider';
 import { useModelSelectorChatContext } from './ModelSelectorChatContext';
 import useSelectMention from '~/hooks/Input/useSelectMention';
 import { filterItems } from './utils';
+import store from '~/store';
 
 type ModelSelectorContextType = {
   // State
@@ -57,6 +59,7 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
   const agentsMap = useAgentsMapContext();
   const assistantsMap = useAssistantsMapContext();
   const { data: endpointsConfig } = useGetEndpointsQuery();
+  const enableAppleIntelligence = useRecoilValue(store.enableAppleIntelligence);
   const { endpoint, model, spec, agent_id, assistant_id, conversation, newConversation } =
     useModelSelectorChatContext();
   const modelSpecs = useMemo(() => {
@@ -68,15 +71,26 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
     /**
      * Filter modelSpecs to only include agents the user has access to.
      * Use agentsMap which already contains permission-filtered agents (consistent with other components).
+     * Also filter out modelSpecs for disabled local inference endpoints.
      */
     return specs.filter((spec) => {
       if (spec.preset?.endpoint === EModelEndpoint.agents && spec.preset?.agent_id) {
         return spec.preset.agent_id in agentsMap;
       }
+      // Hide model specs for local inference endpoints when disabled in Providers settings
+      if (spec.preset?.endpoint && endpointsConfig) {
+        const epConfig = endpointsConfig[spec.preset.endpoint];
+        if (
+          (epConfig as Record<string, unknown>)?.localInference === true &&
+          !enableAppleIntelligence
+        ) {
+          return false;
+        }
+      }
       /** Keep non-agent modelSpecs */
       return true;
     });
-  }, [startupConfig, agentsMap]);
+  }, [startupConfig, agentsMap, endpointsConfig, enableAppleIntelligence]);
 
   const permissionLevel = useAgentDefaultPermissionLevel();
   const { data: agents = null } = useListAgentsQuery(
@@ -121,12 +135,12 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
     agentsMap,
     conversation: endpoint
       ? ({
-          endpoint: endpoint ?? null,
-          model: model ?? null,
-          spec: spec ?? null,
-          agent_id: agent_id ?? null,
-          assistant_id: assistant_id ?? null,
-        } as any)
+        endpoint: endpoint ?? null,
+        model: model ?? null,
+        spec: spec ?? null,
+        agent_id: agent_id ?? null,
+        assistant_id: assistant_id ?? null,
+      } as any)
       : null,
     assistantsMap,
     setSelectedValues,

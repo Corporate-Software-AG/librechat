@@ -273,15 +273,24 @@ export const validateFiles = ({
     }
 
     let mimeTypesToCheck = supportedMimeTypes;
+    let skipMimeCheck = false;
     if (toolResource === EToolResources.context) {
       mimeTypesToCheck = [
         ...(fileConfig?.text?.supportedMimeTypes || []),
         ...(fileConfig?.ocr?.supportedMimeTypes || []),
         ...(fileConfig?.stt?.supportedMimeTypes || []),
       ];
+    } else if (
+      toolResource === EToolResources.file_search ||
+      toolResource === EToolResources.execute_code
+    ) {
+      // File Search and Code Interpreter accept all file types,
+      // bypassing endpoint-level MIME restrictions (e.g., image-only for Provider Upload).
+      // Server-side validation still applies.
+      skipMimeCheck = true;
     }
 
-    if (!checkType(originalFile.type, mimeTypesToCheck)) {
+    if (!skipMimeCheck && !checkType(originalFile.type, mimeTypesToCheck)) {
       console.log(originalFile);
       setError('Currently, unsupported file type: ' + originalFile.type);
       return false;

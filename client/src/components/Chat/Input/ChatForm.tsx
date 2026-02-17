@@ -20,6 +20,7 @@ import {
   useFocusChatEffect,
 } from '~/hooks';
 import { mainTextareaId, BadgeItem } from '~/common';
+import { useGetEndpointsQuery } from '~/data-provider';
 import AttachFileChat from './Files/AttachFileChat';
 import FileFormChat from './Files/FileFormChat';
 import { cn, removeFocusRings } from '~/utils';
@@ -84,6 +85,11 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
   const endpoint = useMemo(
     () => conversation?.endpointType ?? conversation?.endpoint,
     [conversation?.endpointType, conversation?.endpoint],
+  );
+  const { data: endpointsConfig } = useGetEndpointsQuery();
+  const isLocalInference = useMemo(
+    () => endpointsConfig?.[conversation?.endpoint ?? '']?.localInference === true,
+    [endpointsConfig, conversation?.endpoint],
   );
   const conversationId = useMemo(
     () => conversation?.conversationId ?? Constants.NEW_CONVO,
@@ -263,9 +269,9 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
                   style={
                     isCollapsed
                       ? {
-                          WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 90%)',
-                          maskImage: 'linear-gradient(to bottom, black 60%, transparent 90%)',
-                        }
+                        WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 90%)',
+                        maskImage: 'linear-gradient(to bottom, black 60%, transparent 90%)',
+                      }
                       : undefined
                   }
                 >
@@ -321,7 +327,10 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
               </div>
               <BadgeRow
                 showEphemeralBadges={
-                  !!endpoint && !isAgentsEndpoint(endpoint) && !isAssistantsEndpoint(endpoint)
+                  !!endpoint &&
+                  !isAgentsEndpoint(endpoint) &&
+                  !isAssistantsEndpoint(endpoint) &&
+                  !isLocalInference
                 }
                 isSubmitting={isSubmitting}
                 conversationId={conversationId}

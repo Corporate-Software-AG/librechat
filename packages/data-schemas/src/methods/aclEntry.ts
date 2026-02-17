@@ -71,16 +71,6 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
    * @param permissionBit - The permission bit to check (use PermissionBits enum)
    * @returns Whether any of the principals has the permission
    */
-
-  /** Cosmos DB compat: enumerate all values where required bits are set */
-  function cosmosBitsAllSet(requiredBits: number): number[] {
-    const matches: number[] = [];
-    for (let i = 0; i < 16; i++) {
-      if ((i & requiredBits) === requiredBits) matches.push(i);
-    }
-    return matches;
-  }
-
   async function hasPermission(
     principalsList: Array<{ principalType: string; principalId?: string | Types.ObjectId }>,
     resourceType: string,
@@ -97,7 +87,7 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
       $or: principalsQuery,
       resourceType,
       resourceId,
-      permBits: { $in: cosmosBitsAllSet(permissionBit) },
+      permBits: { $bitsAllSet: permissionBit },
     }).lean();
 
     return !!entry;
@@ -352,7 +342,7 @@ export function createAclEntryMethods(mongoose: typeof import('mongoose')) {
     const entries = await AclEntry.find({
       $or: principalsQuery,
       resourceType,
-      permBits: { $in: cosmosBitsAllSet(requiredPermBit) },
+      permBits: { $bitsAllSet: requiredPermBit },
     }).distinct('resourceId');
 
     return entries;

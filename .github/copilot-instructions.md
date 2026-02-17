@@ -40,27 +40,11 @@ git push origin askia --force-with-lease
 
 ---
 
-## Customized Files (11 total)
+## Customized Files (8 total)
 
-### 1. Azure Cosmos DB Compatibility (3 files)
+> **Note:** As of Feb 2026, the **Cosmos DB compatibility patches have been removed**. Askia Light now uses containerized MongoDB 8.0 which supports native `$bitsAllSet` and `$bit` operators. The 3 files previously patched for Cosmos DB (`aclEntry.ts`, `PermissionService.js`, `accessControlService.ts`) have been reverted to upstream code.
 
-Cosmos DB for MongoDB (RU-based) does not support MongoDB bitwise operators (`$bitsAllSet`, `$bit`). These changes replace bitwise queries with `$in` equivalents.
-
-| File | Change |
-|------|--------|
-| `packages/data-schemas/src/methods/aclEntry.ts` | Replace `$bitsAllSet` with `$in` helper (2 locations), replace `$bit` with read-modify-write |
-| `api/server/services/PermissionService.js` | Replace `$bitsAllSet` with `$in` helper |
-| `packages/api/src/acl/accessControlService.ts` | Replace `$bitsAllSet` with `$in` helper |
-
-**Helper function** (add once, use everywhere):
-```typescript
-// Returns all values 0-15 where (value & bits) === bits
-function getValuesWithBits(bits: number): number[] {
-  return Array.from({ length: 16 }, (_, i) => i).filter(v => (v & bits) === bits);
-}
-```
-
-### 2. Local Inference Routing (6 files)
+### 1. Local Inference Routing (6 files)
 
 Enables browser-to-localhost routing for Apple Intelligence via the askia-local-macos companion app.
 
@@ -85,7 +69,7 @@ endpoints:
         default: ["apple-on-device"]
 ```
 
-### 3. Branding Customizations (2 files)
+### 2. Branding Customizations (2 files)
 
 | File | Change |
 |------|--------|
@@ -111,8 +95,7 @@ This LibreChat fork is deployed as part of **askia-light**, a comprehensive AI c
 │  │   └── askia-wiki/           # Knowledge base MCP server           │
 │  ├── infra/                    # Azure Bicep infrastructure          │
 │  ├── scripts/                                                        │
-│  │   ├── apply-branding.sh     # Injects assets at build time        │
-│  │   └── init-cosmos-indexes.js # Creates MongoDB indexes            │
+│  │   └─ apply-branding.sh     # Injects assets at build time        │
 │  └── librechat/                # ← THIS FORK (submodule)             │
 └─────────────────────────────────────────────────────────────────────┘
 

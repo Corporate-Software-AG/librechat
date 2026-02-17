@@ -47,6 +47,7 @@ interface AttachFileMenuProps {
   endpointType?: EModelEndpoint;
   endpointFileConfig?: EndpointFileConfig;
   useResponsesApi?: boolean;
+  isLocalInference?: boolean;
 }
 
 const AttachFileMenu = ({
@@ -57,6 +58,7 @@ const AttachFileMenu = ({
   conversationId,
   endpointFileConfig,
   useResponsesApi,
+  isLocalInference,
 }: AttachFileMenuProps) => {
   const localize = useLocalize();
   const isUploadDisabled = disabled ?? false;
@@ -109,6 +111,20 @@ const AttachFileMenu = ({
   };
 
   const dropdownItems = useMemo(() => {
+    // Local inference: show only a simple "Upload Document" item
+    if (isLocalInference) {
+      return [
+        {
+          label: localize('com_ui_upload_document') || 'Upload Document',
+          onClick: () => {
+            setToolResource(EToolResources.file_search);
+            handleUploadClick('document');
+          },
+          icon: <FileSearch className="icon-md" />,
+        },
+      ] as MenuItemProps[];
+    }
+
     const createMenuItems = (onAction: (fileType?: FileUploadType) => void) => {
       const items: MenuItemProps[] = [];
 
@@ -203,7 +219,7 @@ const AttachFileMenu = ({
       });
       localItems.push({
         label: localize('com_files_upload_sharepoint'),
-        onClick: () => {},
+        onClick: () => { },
         icon: <SharePointIcon className="icon-md" />,
         subItems: sharePointItems,
       });
@@ -218,6 +234,7 @@ const AttachFileMenu = ({
     endpointType,
     capabilities,
     useResponsesApi,
+    isLocalInference,
     setToolResource,
     setEphemeralAgent,
     sharePointEnabled,
