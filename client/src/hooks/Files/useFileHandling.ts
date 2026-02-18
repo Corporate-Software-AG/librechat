@@ -207,7 +207,7 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
 
         updateFileById(extendedFile.file_id, { progress: 0.4 }, false);
 
-        const response = await fetch(`${localBaseURL}/v1/files`, {
+        const response = await fetch(`${localBaseURL}/files`, {
           method: 'POST',
           body: formData,
         });
