@@ -114,6 +114,7 @@ export default function useLocalSSE(
             model,
             messages: chatMessages,
             stream: true,
+            conversation_id: conversationId,
           }),
           signal: controller.signal,
         });
