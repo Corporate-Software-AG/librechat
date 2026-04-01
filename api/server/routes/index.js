@@ -1,4 +1,5 @@
 const accessPermissions = require('./accessPermissions');
+const adminConfig = require('./adminConfig');
 const assistants = require('./assistants');
 const categories = require('./categories');
 const endpoints = require('./endpoints');
@@ -32,6 +33,7 @@ module.exports = {
   user,
   tags,
   roles,
+  adminConfig,
   oauth,
   files,
   share,
