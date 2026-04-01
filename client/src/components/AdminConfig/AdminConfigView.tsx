@@ -9,17 +9,31 @@ import {
   useDeleteAdminConfigFields,
 } from '~/data-provider';
 import SectionEditor from './SectionEditor';
+import type { SectionFormProps } from './SectionEditor';
+import InterfaceForm from './sections/InterfaceForm';
+import ModelSpecsForm from './sections/ModelSpecsForm';
+import EndpointsForm from './sections/EndpointsForm';
+import BalanceForm from './sections/BalanceForm';
+import TransactionsForm from './sections/TransactionsForm';
+import RegistrationForm from './sections/RegistrationForm';
+import SpeechForm from './sections/SpeechForm';
+import RateLimitsForm from './sections/RateLimitsForm';
+import type { ComponentType } from 'react';
 
-const EDITABLE_SECTIONS = [
-  { key: 'interface', label: 'Interface' },
-  { key: 'modelSpecs', label: 'Model Specs' },
-  { key: 'endpoints', label: 'Endpoints' },
-  { key: 'balance', label: 'Balance' },
-  { key: 'transactions', label: 'Transactions' },
-  { key: 'registration', label: 'Registration' },
-  { key: 'speech', label: 'Speech' },
-  { key: 'rateLimits', label: 'Rate Limits' },
-] as const;
+const EDITABLE_SECTIONS: {
+  key: string;
+  label: string;
+  Form?: ComponentType<SectionFormProps>;
+}[] = [
+  { key: 'interface', label: 'Interface', Form: InterfaceForm },
+  { key: 'modelSpecs', label: 'Model Specs', Form: ModelSpecsForm },
+  { key: 'endpoints', label: 'Endpoints', Form: EndpointsForm },
+  { key: 'balance', label: 'Balance', Form: BalanceForm },
+  { key: 'transactions', label: 'Transactions', Form: TransactionsForm },
+  { key: 'registration', label: 'Registration', Form: RegistrationForm },
+  { key: 'speech', label: 'Speech', Form: SpeechForm },
+  { key: 'rateLimits', label: 'Rate Limits', Form: RateLimitsForm },
+];
 
 const PRINCIPAL_TYPE = 'role';
 const PRINCIPAL_ID = '__base__';
@@ -187,15 +201,21 @@ export default function AdminConfigView() {
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-border-medium border-t-text-primary" />
             </div>
           ) : (
-            <SectionEditor
-              key={activeTab}
-              section={activeTab}
-              baseValue={baseConfig?.[activeTab] as Record<string, unknown> | undefined}
-              overrideValue={overrides[activeTab] as Record<string, unknown> | undefined}
-              onSave={(value) => handleSave(activeTab, value)}
-              onReset={() => handleReset(activeTab)}
-              isSaving={patchMutation.isLoading || deleteMutation.isLoading}
-            />
+            (() => {
+              const sectionDef = EDITABLE_SECTIONS.find((s) => s.key === activeTab);
+              return (
+                <SectionEditor
+                  key={activeTab}
+                  section={activeTab}
+                  baseValue={baseConfig?.[activeTab] as Record<string, unknown> | undefined}
+                  overrideValue={overrides[activeTab] as Record<string, unknown> | undefined}
+                  onSave={(value) => handleSave(activeTab, value)}
+                  onReset={() => handleReset(activeTab)}
+                  isSaving={patchMutation.isLoading || deleteMutation.isLoading}
+                  FormComponent={sectionDef?.Form}
+                />
+              );
+            })()
           )}
         </div>
       </div>
