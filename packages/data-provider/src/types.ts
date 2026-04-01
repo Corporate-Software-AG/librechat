@@ -381,6 +381,9 @@ export type TConfig = {
     defaultParamsEndpoint?: string;
     paramDefinitions?: Partial<SettingDefinition>[];
   };
+  localInference?: boolean;
+  localBaseURL?: string;
+  temporaryChat?: boolean;
 };
 
 export type TEndpointsConfig =

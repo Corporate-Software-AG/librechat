@@ -1,6 +1,6 @@
 import { useState, memo, useRef } from 'react';
 import * as Menu from '@ariakit/react/menu';
-import { FileText, LogOut } from 'lucide-react';
+import { FileText, LogOut, ShieldCheck, ScrollText } from 'lucide-react';
 import { LinkIcon, GearIcon, DropdownMenuSeparator, Avatar } from '@librechat/client';
 import { MyFilesModal } from '~/components/Chat/Input/Files/MyFilesModal';
 import { useGetStartupConfig, useGetUserBalance } from '~/data-provider';
@@ -80,6 +80,34 @@ function AccountSettings({ collapsed = false }: { collapsed?: boolean }) {
           >
             <LinkIcon aria-hidden="true" />
             {localize('com_nav_help_faq')}
+          </Menu.MenuItem>
+        )}
+        {startupConfig?.interface?.privacyPolicy?.externalUrl && (
+          <Menu.MenuItem
+            onClick={() =>
+              window.open(
+                startupConfig.interface.privacyPolicy.externalUrl,
+                startupConfig.interface.privacyPolicy.openNewTab ? '_blank' : '_self',
+              )
+            }
+            className="select-item text-sm"
+          >
+            <ShieldCheck className="icon-md" aria-hidden="true" />
+            {localize('com_ui_privacy_policy')}
+          </Menu.MenuItem>
+        )}
+        {startupConfig?.interface?.termsOfService?.externalUrl && (
+          <Menu.MenuItem
+            onClick={() =>
+              window.open(
+                startupConfig.interface.termsOfService.externalUrl,
+                startupConfig.interface.termsOfService.openNewTab ? '_blank' : '_self',
+              )
+            }
+            className="select-item text-sm"
+          >
+            <ScrollText className="icon-md" aria-hidden="true" />
+            {localize('com_ui_terms_of_service')}
           </Menu.MenuItem>
         )}
         <Menu.MenuItem onClick={() => setShowSettings(true)} className="select-item text-sm">

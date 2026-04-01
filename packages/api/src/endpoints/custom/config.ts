@@ -35,6 +35,9 @@ export function loadCustomEndpointsConfig(
         iconURL,
         modelDisplayLabel,
         customParams,
+        localInference,
+        localBaseURL,
+        temporaryChat,
       } = endpoint;
       const name = normalizeEndpointName(configName);
 
@@ -48,6 +51,9 @@ export function loadCustomEndpointsConfig(
         customParams,
         modelDisplayLabel,
         iconURL,
+        localInference,
+        localBaseURL,
+        temporaryChat,
       };
     }
   }

@@ -187,10 +187,73 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
     const filename = extendedFile.file?.name ?? 'File';
     startUploadTimer(extendedFile.file_id, filename, extendedFile.size);
 
+    // Check if this endpoint uses local inference (e.g., Apple Intelligence)
+    const endpointsConfig = queryClient.getQueryData<TEndpointsConfig>([QueryKeys.endpoints]);
+    const endpointConfig = endpointsConfig?.[endpoint];
+    const isLocalInference = (endpointConfig as Record<string, unknown>)?.localInference === true;
+    const localBaseURL = (endpointConfig as Record<string, unknown>)?.localBaseURL as
+      | string
+      | undefined;
+
+    if (isLocalInference && localBaseURL) {
+      // Upload directly to companion app for local RAG processing
+      try {
+        const formData = new FormData();
+        formData.append('file', extendedFile.file as File, filename);
+        formData.append('purpose', 'assistants');
+        if (conversation?.conversationId) {
+          formData.append('conversation_id', conversation.conversationId);
+        }
+
+        updateFileById(extendedFile.file_id, { progress: 0.4 }, false);
+
+        const response = await fetch(`${localBaseURL}/files`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errText = await response.text().catch(() => 'Upload failed');
+          throw new Error(errText);
+        }
+
+        const data = await response.json();
+
+        updateFileById(
+          extendedFile.file_id,
+          { progress: 0.9, filepath: data.filename || filename },
+          false,
+        );
+
+        setTimeout(() => {
+          updateFileById(
+            extendedFile.file_id,
+            {
+              progress: 1,
+              file_id: data.id || extendedFile.file_id,
+              temp_file_id: extendedFile.file_id,
+              filepath: data.filename || filename,
+              type: extendedFile.type,
+              filename: data.filename || filename,
+              source: 'local',
+              embedded: true,
+            },
+            false,
+          );
+        }, 300);
+      } catch (error) {
+        clearUploadTimer(extendedFile.file_id);
+        deleteFileById(extendedFile.file_id);
+        console.error('Local file upload error:', error);
+        setError('com_error_files_upload');
+      }
+      return;
+    }
+
     const formData = new FormData();
     formData.append('endpoint', endpoint);
     formData.append('endpointType', endpointType ?? '');
-    formData.append('file', extendedFile.file as File, encodeURIComponent(filename));
+    formData.append('file', extendedFile.file as File, filename);
     formData.append('file_id', extendedFile.file_id);
 
     const width = extendedFile.width ?? 0;
@@ -234,7 +297,6 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
       formData.append('message_file', 'true');
     }
 
-    const endpointsConfig = queryClient.getQueryData<TEndpointsConfig>([QueryKeys.endpoints]);
     const version = endpointsConfig?.[endpoint]?.version ?? defaultAssistantsVersion[endpoint];
 
     if (!assistant_id && convoAssistantId) {

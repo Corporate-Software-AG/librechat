@@ -4,8 +4,8 @@
   "com_a11y_ai_composing": "ხელოვნური ინტელექტი კვლავ წერის პროცესშია.",
   "com_a11y_end": "ხელოვნურმა ინტელექტმა დაასრულა თავისი პასუხი.",
   "com_a11y_start": "ხელოვნურმა ინტელექტმა დაიწყო პასუხის გაცემა.",
-  "com_agents_by_librechat": "LibreChat-ის მიერ",
-  "com_agents_code_interpreter_title": "კოდის ინტერპრეტატორის API",
+  "com_agents_by_librechat": "by ASKIA",
+  "com_agents_code_interpreter_title": "Code Interpreter",
   "com_agents_create_error": "თქვენი აგენტის შექმნისასდაფიქსირდა შეცდომა",
   "com_agents_description_placeholder": "არასავალდებულო: აღწერეთ თქვენი აგენტი",
   "com_agents_enable_file_search": "ფაილების ძიების ჩართვა",
@@ -59,5 +59,10 @@
   "com_nav_lang_traditional_chinese": "ჩინური ტრადიციული",
   "com_nav_lang_turkish": "თურქული",
   "com_nav_lang_vietnamese": "ვიეტნამური",
-  "com_nav_language": "ენა"
+  "com_nav_language": "ენა",
+  "com_agents_code_interpreter": "When enabled, allows your agent to run generated code securely, including file processing.",
+  "com_ui_librechat_code_api_title": "Run Code",
+  "com_ui_librechat_code_api_subtitle": "Secure. Multi-language. Input/Output Files.",
+  "com_ui_librechat_code_api_key": "Code Interpreter is configured by your administrator",
+  "com_ui_add_code_interpreter_api_key": ""
 }
