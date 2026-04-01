@@ -1,7 +1,9 @@
 import { useState, memo, useRef } from 'react';
 import * as Select from '@ariakit/react/select';
-import { FileText, LogOut, ShieldCheck, ScrollText } from 'lucide-react';
+import { FileText, LogOut, ShieldCheck, ScrollText, ShieldEllipsis } from 'lucide-react';
+import { SystemRoles } from 'librechat-data-provider';
 import { LinkIcon, GearIcon, DropdownMenuSeparator, Avatar } from '@librechat/client';
+import { useNavigate } from 'react-router-dom';
 import { MyFilesModal } from '~/components/Chat/Input/Files/MyFilesModal';
 import { useGetStartupConfig, useGetUserBalance } from '~/data-provider';
 import { useAuthContext } from '~/hooks/AuthContext';
@@ -10,6 +12,7 @@ import Settings from './Settings';
 
 function AccountSettings() {
   const localize = useLocalize();
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthContext();
   const { data: startupConfig } = useGetStartupConfig();
   const balanceQuery = useGetUserBalance({
@@ -18,6 +21,7 @@ function AccountSettings() {
   const [showSettings, setShowSettings] = useState(false);
   const [showFiles, setShowFiles] = useState(false);
   const accountSettingsButtonRef = useRef<HTMLButtonElement>(null);
+  const isAdmin = user?.role === SystemRoles.ADMIN;
 
   return (
     <Select.SelectProvider>
@@ -115,6 +119,19 @@ function AccountSettings() {
           <GearIcon className="icon-md" aria-hidden="true" />
           {localize('com_nav_settings')}
         </Select.SelectItem>
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <Select.SelectItem
+              value=""
+              onClick={() => navigate('/d/admin')}
+              className="select-item text-sm"
+            >
+              <ShieldEllipsis className="icon-md" aria-hidden="true" />
+              Admin Config
+            </Select.SelectItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <Select.SelectItem
           aria-selected={true}

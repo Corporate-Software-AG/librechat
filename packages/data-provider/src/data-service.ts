@@ -1052,3 +1052,79 @@ export interface ActiveJobsResponse {
 export const getActiveJobs = (): Promise<ActiveJobsResponse> => {
   return request.get(endpoints.activeJobs());
 };
+
+/* ── Admin Config ───────────────────────────────────────────────────── */
+
+export type AdminConfigListResponse = { configs: AdminConfigItem[] };
+export type AdminConfigResponse = { config: AdminConfigItem };
+export type AdminConfigDeleteResponse = { success: boolean };
+
+export interface AdminConfigItem {
+  _id: string;
+  principalType: string;
+  principalId: string;
+  principalModel: string;
+  priority: number;
+  overrides: Record<string, unknown>;
+  isActive: boolean;
+  configVersion: number;
+  tenantId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export function getAdminConfigs(): Promise<AdminConfigListResponse> {
+  return request.get(endpoints.adminConfigList());
+}
+
+export function getAdminBaseConfig(): Promise<Record<string, unknown>> {
+  return request.get(endpoints.adminConfigBase());
+}
+
+export function getAdminConfig(
+  principalType: string,
+  principalId: string,
+): Promise<AdminConfigResponse> {
+  return request.get(endpoints.adminConfig(principalType, principalId));
+}
+
+export function upsertAdminConfig(
+  principalType: string,
+  principalId: string,
+  data: { overrides: Record<string, unknown>; priority?: number },
+): Promise<AdminConfigResponse> {
+  return request.put(endpoints.adminConfig(principalType, principalId), data);
+}
+
+export function patchAdminConfigFields(
+  principalType: string,
+  principalId: string,
+  data: { section: string; value: unknown },
+): Promise<AdminConfigResponse> {
+  return request.patch(endpoints.adminConfigFields(principalType, principalId), data);
+}
+
+export function deleteAdminConfigFields(
+  principalType: string,
+  principalId: string,
+  data: { section: string; field?: string },
+): Promise<AdminConfigResponse> {
+  return request.deleteWithOptions(endpoints.adminConfigFields(principalType, principalId), {
+    data,
+  });
+}
+
+export function deleteAdminConfig(
+  principalType: string,
+  principalId: string,
+): Promise<AdminConfigDeleteResponse> {
+  return request.delete(endpoints.adminConfig(principalType, principalId));
+}
+
+export function toggleAdminConfig(
+  principalType: string,
+  principalId: string,
+  data: { isActive: boolean },
+): Promise<AdminConfigResponse> {
+  return request.patch(endpoints.adminConfigActive(principalType, principalId), data);
+}

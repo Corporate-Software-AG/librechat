@@ -62,6 +62,10 @@ export enum QueryKeys {
   mcpServer = 'mcpServer',
   /* Active Jobs */
   activeJobs = 'activeJobs',
+  /* Admin Config */
+  adminConfigs = 'adminConfigs',
+  adminBaseConfig = 'adminBaseConfig',
+  adminConfig = 'adminConfig',
 }
 
 // Dynamic query keys that require parameters
