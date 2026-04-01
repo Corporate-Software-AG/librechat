@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# apply-branding.sh — Apply ASKIA Light branding to the LibreChat submodule
+# apply-branding.sh — Apply ASKIA Light branding to the LibreChat repository
 #
-# This script patches files in ./librechat BEFORE the Docker image is built.
+# This script patches files in the client/ directory BEFORE the Docker image is built.
 # It is idempotent — safe to run multiple times.
 #
 # What it does:
 #   1. Copies favicon, logo, and apple-touch-icon assets
-#   2. Merges i18n translation overrides into locale JSON files
-#   3. Injects a custom CSS override stylesheet via index.html
+#   2. Merges i18n translation overrides into the English locale JSON file
+#   3. CSS overrides (reserved for future use — currently skipped)
 #   4. Patches hardcoded external links and source references
+#   5. Adds Privacy & Terms links to the account settings menu
 #
 # Usage:
 #   bash scripts/apply-branding.sh
@@ -35,7 +36,7 @@ echo ""
 # --------------------------------------------------------------------------
 # 1. Copy image assets (favicon, logo, apple-touch-icon)
 # --------------------------------------------------------------------------
-echo "[1/4] Copying image assets..."
+echo "[1/5] Copying image assets..."
 ASSET_COUNT=0
 
 # Direct name-match assets (same filename in branding/ and assets/)
@@ -80,7 +81,7 @@ fi
 # 2. Merge i18n translation overrides
 # --------------------------------------------------------------------------
 echo ""
-echo "[2/4] Merging i18n overrides..."
+echo "[2/5] Merging i18n overrides (en locale only)..."
 I18N_OVERRIDES="${BRANDING_DIR}/i18n-overrides.json"
 if [ -f "${I18N_OVERRIDES}" ]; then
   # Check for jq (preferred) or fall back to Node.js
@@ -94,32 +95,27 @@ if [ -f "${I18N_OVERRIDES}" ]; then
     exit 1
   fi
 
-  # Merge into each locale's translation.json
-  LOCALE_COUNT=0
-  for locale_dir in "${LOCALES_DIR}"/*/; do
-    locale_file="${locale_dir}translation.json"
-    if [ -f "${locale_file}" ]; then
-      locale_name="$(basename "${locale_dir}")"
-
-      if [ "${MERGE_CMD}" = "jq" ]; then
-        # jq: merge overrides on top of existing (overrides win)
-        jq -s '.[0] * .[1]' "${locale_file}" "${I18N_OVERRIDES}" > "${locale_file}.tmp"
-        mv "${locale_file}.tmp" "${locale_file}"
-      else
-        # Node.js fallback
-        node -e "
-          const fs = require('fs');
-          const base = JSON.parse(fs.readFileSync('${locale_file}', 'utf8'));
-          const overrides = JSON.parse(fs.readFileSync('${I18N_OVERRIDES}', 'utf8'));
-          Object.assign(base, overrides);
-          fs.writeFileSync('${locale_file}', JSON.stringify(base, null, 2) + '\n');
-        "
-      fi
-
-      LOCALE_COUNT=$((LOCALE_COUNT + 1))
+  # Merge into the English locale only (overrides contain English strings)
+  EN_LOCALE_FILE="${LOCALES_DIR}/en/translation.json"
+  if [ -f "${EN_LOCALE_FILE}" ]; then
+    if [ "${MERGE_CMD}" = "jq" ]; then
+      # jq: merge overrides on top of existing (overrides win)
+      jq -s '.[0] * .[1]' "${EN_LOCALE_FILE}" "${I18N_OVERRIDES}" > "${EN_LOCALE_FILE}.tmp"
+      mv "${EN_LOCALE_FILE}.tmp" "${EN_LOCALE_FILE}"
+    else
+      # Node.js fallback
+      node -e "
+        const fs = require('fs');
+        const base = JSON.parse(fs.readFileSync('${EN_LOCALE_FILE}', 'utf8'));
+        const overrides = JSON.parse(fs.readFileSync('${I18N_OVERRIDES}', 'utf8'));
+        Object.assign(base, overrides);
+        fs.writeFileSync('${EN_LOCALE_FILE}', JSON.stringify(base, null, 2) + '\n');
+      "
     fi
-  done
-  echo "  ✓ Merged overrides into ${LOCALE_COUNT} locale(s)"
+    echo "  ✓ Merged overrides into en locale"
+  else
+    echo "  WARNING: ${EN_LOCALE_FILE} not found — skipping i18n merge"
+  fi
 else
   echo "  (no i18n-overrides.json found — skipping)"
 fi
@@ -128,13 +124,13 @@ fi
 # 3. CSS overrides (currently disabled — reserved for future use)
 # --------------------------------------------------------------------------
 echo ""
-echo "[3/4] CSS overrides: skipped (not configured)"
+echo "[3/5] CSS overrides: skipped (reserved for future use)"
 
 # --------------------------------------------------------------------------
 # 4. Patch hardcoded external links and source references
 # --------------------------------------------------------------------------
 echo ""
-echo "[4/5] Patching hardcoded links..."
+echo "[4/5] Patching hardcoded links and source references..."
 PATCHES_APPLIED=0
 
 # Remove link to code.librechat.ai/pricing in ApiKeyDialog
@@ -184,7 +180,13 @@ ACCOUNT_SETTINGS="${ROOT_DIR}/client/src/components/Nav/AccountSettings.tsx"
 if [ -f "${ACCOUNT_SETTINGS}" ]; then
   if ! grep -q "privacy_policy" "${ACCOUNT_SETTINGS}"; then
     echo "  Patching AccountSettings.tsx..."
-    
+
+    if ! command -v node >/dev/null 2>&1; then
+      echo "  ERROR: node not found. Cannot patch AccountSettings.tsx."
+      echo "  Install Node.js to enable this step."
+      exit 1
+    fi
+
     node -e "
       const fs = require('fs');
       let code = fs.readFileSync('${ACCOUNT_SETTINGS}', 'utf8');

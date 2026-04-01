@@ -9,7 +9,7 @@ build — no permanent submodule modifications needed.
 | File | Purpose | Target in LibreChat |
 |------|---------|---------------------|
 | `i18n-overrides.json` | Translation key overrides (removes "by LibreChat" etc.) | `client/src/locales/en/translation.json` (merged) |
-| `style-overrides.css` | CSS custom property overrides (colors, theming) | `client/public/assets/style-overrides.css` (injected via `<link>`) |
+| `style-overrides.css` | CSS custom property overrides (colors, theming) — reserved for future use | _(not currently applied)_ |
 | `favicon-16x16.png` | Browser tab icon (16×16) | `client/public/assets/favicon-16x16.png` |
 | `favicon-32x32.png` | Browser tab icon (32×32) | `client/public/assets/favicon-32x32.png` |
 | `favicon.ico` | Browser tab icon (ICO fallback) | `client/public/assets/favicon.ico` |
@@ -31,8 +31,10 @@ Docker image.
 For favicon and logo, Docker volume mounts in `docker-compose.override.yml`
 overlay the files at runtime (no rebuild needed).
 
-For i18n overrides and CSS, run `scripts/apply-branding.sh` then rebuild the
-frontend: `cd librechat && npm run frontend`.
+For i18n overrides, run `scripts/apply-branding.sh` then rebuild the
+frontend: `cd librechat && npm run frontend`. Note: CSS overrides in
+`style-overrides.css` are reserved for future use and not applied by
+the script yet.
 
 ## Adding your own assets
 
