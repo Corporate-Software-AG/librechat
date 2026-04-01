@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SystemRoles } from 'librechat-data-provider';
 import { useAuthContext, useLocalize } from '~/hooks';
@@ -45,6 +45,7 @@ export default function AdminConfigView() {
 
   const [activeTab, setActiveTab] = useState<string>(EDITABLE_SECTIONS[0].key);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: baseConfig, isLoading: baseLoading } = useGetAdminBaseConfig({
     enabled: isAuthenticated && user?.role === SystemRoles.ADMIN,
@@ -56,6 +57,21 @@ export default function AdminConfigView() {
 
   const patchMutation = usePatchAdminConfigFields();
   const deleteMutation = useDeleteAdminConfigFields();
+
+  useEffect(() => {
+    return () => {
+      if (statusTimerRef.current != null) {
+        clearTimeout(statusTimerRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleIdle = useCallback((delay: number) => {
+    if (statusTimerRef.current != null) {
+      clearTimeout(statusTimerRef.current);
+    }
+    statusTimerRef.current = setTimeout(() => setSaveStatus('idle'), delay);
+  }, []);
 
   const globalOverride = useMemo(() => {
     if (!configsData?.configs) {
@@ -81,13 +97,13 @@ export default function AdminConfigView() {
           value,
         });
         setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
+        scheduleIdle(2000);
       } catch {
         setSaveStatus('error');
-        setTimeout(() => setSaveStatus('idle'), 3000);
+        scheduleIdle(3000);
       }
     },
-    [patchMutation],
+    [patchMutation, scheduleIdle],
   );
 
   const handleReset = useCallback(
@@ -100,13 +116,13 @@ export default function AdminConfigView() {
           section,
         });
         setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
+        scheduleIdle(2000);
       } catch {
         setSaveStatus('error');
-        setTimeout(() => setSaveStatus('idle'), 3000);
+        scheduleIdle(3000);
       }
     },
-    [deleteMutation],
+    [deleteMutation, scheduleIdle],
   );
 
   const shouldRedirect = !isAuthenticated || user?.role !== SystemRoles.ADMIN;

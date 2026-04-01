@@ -181,11 +181,11 @@ export const config = () => `${BASE_URL}/api/config`;
 export const adminConfigList = () => `${BASE_URL}/api/admin/config`;
 export const adminConfigBase = () => `${BASE_URL}/api/admin/config/base`;
 export const adminConfig = (principalType: string, principalId: string) =>
-  `${BASE_URL}/api/admin/config/${principalType}/${principalId}`;
+  `${BASE_URL}/api/admin/config/${encodeURIComponent(principalType)}/${encodeURIComponent(principalId)}`;
 export const adminConfigFields = (principalType: string, principalId: string) =>
-  `${BASE_URL}/api/admin/config/${principalType}/${principalId}/fields`;
+  `${BASE_URL}/api/admin/config/${encodeURIComponent(principalType)}/${encodeURIComponent(principalId)}/fields`;
 export const adminConfigActive = (principalType: string, principalId: string) =>
-  `${BASE_URL}/api/admin/config/${principalType}/${principalId}/active`;
+  `${BASE_URL}/api/admin/config/${encodeURIComponent(principalType)}/${encodeURIComponent(principalId)}/active`;
 
 export const prompts = () => `${BASE_URL}/api/prompts`;
 

@@ -93,8 +93,18 @@ export default function SectionEditor({
   const handleJsonSave = useCallback(() => {
     if (parsedValue != null) {
       onSave(parsedValue);
+      return;
     }
-  }, [parsedValue, onSave]);
+
+    // Treat an empty editor (no JSON content, no parse error) as a reset request.
+    if (!editorText.trim()) {
+      if (window.confirm(`Remove all overrides for "${section}"? The YAML base config will apply.`)) {
+        onReset();
+        setEditorText('');
+        setEditing(false);
+      }
+    }
+  }, [parsedValue, editorText, onSave, onReset, section]);
 
   const handleReset = useCallback(() => {
     if (window.confirm(`Remove all overrides for "${section}"? The YAML base config will apply.`)) {
