@@ -160,8 +160,5 @@
       "admin/",
       "packages/"
     ]
-  },
-  "dependencies": {
-    "@azure/monitor-opentelemetry": "^1.16.0"
   }
 }
