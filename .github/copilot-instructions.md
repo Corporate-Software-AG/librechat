@@ -15,10 +15,48 @@
 ## Branch Strategy
 
 ```
-main          ← Syncs with upstream danny-avila/LibreChat (keep clean!)
+main                          ← Syncs with upstream danny-avila/LibreChat (keep clean!)
   │
-  └── askia   ← ASKIA customizations (make changes here)
+  └── askia                   ← ASKIA customizations (protected, PRs only)
+       │
+       ├── feat/xxx           ← Feature branches (PR → askia, squash merge)
+       ├── fix/xxx            ← Bug fix branches
+       └── infra/xxx          ← Infrastructure changes
 ```
+
+### Branch Rules
+
+| Branch | Purpose | Protection | Who pushes |
+|--------|---------|------------|------------|
+| `main` | Mirror of upstream `danny-avila/LibreChat` | None (tracking only) | Maintainers (sync only) |
+| `askia` | All ASKIA customizations | **Protected**: require PR review, no force push, no direct push | Nobody directly — PRs only |
+| `feat/*`, `fix/*`, `infra/*` | Short-lived work branches | None | Developers |
+
+### Workflow
+
+1. **Create a feature branch** from `askia`:
+   ```bash
+   git checkout askia && git pull origin askia
+   git checkout -b feat/my-feature
+   ```
+2. **Make changes**, commit with conventional commit messages
+3. **Push** and open a PR targeting `askia`:
+   ```bash
+   git push origin feat/my-feature
+   # Open PR: base=askia ← compare=feat/my-feature
+   ```
+4. **Squash merge** after review. Delete the feature branch.
+
+### Branch Naming Convention
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `feat/` | New feature | `feat/admin-config-portal` |
+| `fix/` | Bug fix | `fix/auth-header-strip` |
+| `infra/` | Build/deploy changes | `infra/gpu-workload-profile` |
+| `docs/` | Documentation only | `docs/update-instructions` |
+
+**Max branch lifetime: 2 days.** Keep PRs small and focused.
 
 ### Syncing with Upstream
 
@@ -34,9 +72,11 @@ git push origin main
 # Rebase askia onto updated main
 git checkout askia
 git rebase main
-# Resolve any conflicts in the ~11 customized files
+# Resolve any conflicts in the customized files
 git push origin askia --force-with-lease
 ```
+
+> **⚠️ Rebase of `askia` rewrites history.** This requires temporarily disabling branch protection (allow force push), then re-enabling it. Coordinate with team members — they must `git fetch && git reset --hard origin/askia` after a rebase.
 
 ---
 
