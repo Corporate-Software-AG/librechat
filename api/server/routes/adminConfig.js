@@ -2,13 +2,13 @@ const express = require('express');
 const { checkAdmin, requireJwtAuth } = require('~/server/middleware');
 const { loadCustomConfig } = require('~/server/services/Config');
 const {
-  listAdminConfigs,
-  getAdminConfig,
-  upsertAdminConfig,
-  patchAdminConfigFields,
-  deleteAdminConfigFields,
-  deleteAdminConfig,
-  toggleAdminConfig,
+    listAdminConfigs,
+    getAdminConfig,
+    upsertAdminConfig,
+    patchAdminConfigFields,
+    deleteAdminConfigFields,
+    deleteAdminConfig,
+    toggleAdminConfig,
 } = require('~/models/AdminConfig');
 
 const router = express.Router();
@@ -20,12 +20,12 @@ router.use(checkAdmin);
  * List all admin config overrides.
  */
 router.get('/', async (req, res) => {
-  try {
-    const configs = await listAdminConfigs();
-    res.status(200).json({ configs });
-  } catch (error) {
-    res.status(500).json({ message: 'Error listing admin configs' });
-  }
+    try {
+        const configs = await listAdminConfigs();
+        res.status(200).json({ configs });
+    } catch (error) {
+        res.status(500).json({ message: 'Error listing admin configs' });
+    }
 });
 
 /**
@@ -33,12 +33,12 @@ router.get('/', async (req, res) => {
  * Return the parsed YAML config (read-only base).
  */
 router.get('/base', async (req, res) => {
-  try {
-    const config = (await loadCustomConfig(false)) ?? {};
-    res.status(200).json(config);
-  } catch (error) {
-    res.status(500).json({ message: 'Error loading base config' });
-  }
+    try {
+        const config = (await loadCustomConfig(false)) ?? {};
+        res.status(200).json(config);
+    } catch (error) {
+        res.status(500).json({ message: 'Error loading base config' });
+    }
 });
 
 /**
@@ -46,16 +46,16 @@ router.get('/base', async (req, res) => {
  * Get a single admin config.
  */
 router.get('/:principalType/:principalId', async (req, res) => {
-  try {
-    const { principalType, principalId } = req.params;
-    const config = await getAdminConfig(principalType, principalId);
-    if (!config) {
-      return res.status(404).json({ message: 'Admin config not found' });
+    try {
+        const { principalType, principalId } = req.params;
+        const config = await getAdminConfig(principalType, principalId);
+        if (!config) {
+            return res.status(404).json({ message: 'Admin config not found' });
+        }
+        res.status(200).json({ config });
+    } catch (error) {
+        res.status(500).json({ message: 'Error getting admin config' });
     }
-    res.status(200).json({ config });
-  } catch (error) {
-    res.status(500).json({ message: 'Error getting admin config' });
-  }
 });
 
 /**
@@ -63,17 +63,17 @@ router.get('/:principalType/:principalId', async (req, res) => {
  * Upsert a full admin config (replace overrides).
  */
 router.put('/:principalType/:principalId', async (req, res) => {
-  try {
-    const { principalType, principalId } = req.params;
-    const { overrides, priority } = req.body;
-    if (!overrides || typeof overrides !== 'object') {
-      return res.status(400).json({ message: 'overrides must be an object' });
+    try {
+        const { principalType, principalId } = req.params;
+        const { overrides, priority } = req.body;
+        if (!overrides || typeof overrides !== 'object') {
+            return res.status(400).json({ message: 'overrides must be an object' });
+        }
+        const config = await upsertAdminConfig(principalType, principalId, { overrides, priority });
+        res.status(200).json({ config });
+    } catch (error) {
+        res.status(500).json({ message: 'Error upserting admin config' });
     }
-    const config = await upsertAdminConfig(principalType, principalId, { overrides, priority });
-    res.status(200).json({ config });
-  } catch (error) {
-    res.status(500).json({ message: 'Error upserting admin config' });
-  }
 });
 
 /**
@@ -81,17 +81,17 @@ router.put('/:principalType/:principalId', async (req, res) => {
  * Patch a single section in overrides.
  */
 router.patch('/:principalType/:principalId/fields', async (req, res) => {
-  try {
-    const { principalType, principalId } = req.params;
-    const { section, value } = req.body;
-    if (!section || typeof section !== 'string') {
-      return res.status(400).json({ message: 'section is required and must be a string' });
+    try {
+        const { principalType, principalId } = req.params;
+        const { section, value } = req.body;
+        if (!section || typeof section !== 'string') {
+            return res.status(400).json({ message: 'section is required and must be a string' });
+        }
+        const config = await patchAdminConfigFields(principalType, principalId, { section, value });
+        res.status(200).json({ config });
+    } catch (error) {
+        res.status(500).json({ message: 'Error patching admin config fields' });
     }
-    const config = await patchAdminConfigFields(principalType, principalId, { section, value });
-    res.status(200).json({ config });
-  } catch (error) {
-    res.status(500).json({ message: 'Error patching admin config fields' });
-  }
 });
 
 /**
@@ -99,17 +99,17 @@ router.patch('/:principalType/:principalId/fields', async (req, res) => {
  * Delete a section (or specific field) from overrides.
  */
 router.delete('/:principalType/:principalId/fields', async (req, res) => {
-  try {
-    const { principalType, principalId } = req.params;
-    const { section, field } = req.body;
-    if (!section || typeof section !== 'string') {
-      return res.status(400).json({ message: 'section is required and must be a string' });
+    try {
+        const { principalType, principalId } = req.params;
+        const { section, field } = req.body;
+        if (!section || typeof section !== 'string') {
+            return res.status(400).json({ message: 'section is required and must be a string' });
+        }
+        const config = await deleteAdminConfigFields(principalType, principalId, { section, field });
+        res.status(200).json({ config });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting admin config fields' });
     }
-    const config = await deleteAdminConfigFields(principalType, principalId, { section, field });
-    res.status(200).json({ config });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting admin config fields' });
-  }
 });
 
 /**
@@ -117,13 +117,13 @@ router.delete('/:principalType/:principalId/fields', async (req, res) => {
  * Delete an entire admin config document.
  */
 router.delete('/:principalType/:principalId', async (req, res) => {
-  try {
-    const { principalType, principalId } = req.params;
-    const success = await deleteAdminConfig(principalType, principalId);
-    res.status(200).json({ success });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting admin config' });
-  }
+    try {
+        const { principalType, principalId } = req.params;
+        const success = await deleteAdminConfig(principalType, principalId);
+        res.status(200).json({ success });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting admin config' });
+    }
 });
 
 /**
@@ -131,20 +131,20 @@ router.delete('/:principalType/:principalId', async (req, res) => {
  * Toggle isActive flag.
  */
 router.patch('/:principalType/:principalId/active', async (req, res) => {
-  try {
-    const { principalType, principalId } = req.params;
-    const { isActive } = req.body;
-    if (typeof isActive !== 'boolean') {
-      return res.status(400).json({ message: 'isActive must be a boolean' });
+    try {
+        const { principalType, principalId } = req.params;
+        const { isActive } = req.body;
+        if (typeof isActive !== 'boolean') {
+            return res.status(400).json({ message: 'isActive must be a boolean' });
+        }
+        const config = await toggleAdminConfig(principalType, principalId, isActive);
+        if (!config) {
+            return res.status(404).json({ message: 'Admin config not found' });
+        }
+        res.status(200).json({ config });
+    } catch (error) {
+        res.status(500).json({ message: 'Error toggling admin config' });
     }
-    const config = await toggleAdminConfig(principalType, principalId, isActive);
-    if (!config) {
-      return res.status(404).json({ message: 'Admin config not found' });
-    }
-    res.status(200).json({ config });
-  } catch (error) {
-    res.status(500).json({ message: 'Error toggling admin config' });
-  }
 });
 
 module.exports = router;
