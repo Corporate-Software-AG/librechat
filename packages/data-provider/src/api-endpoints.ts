@@ -177,6 +177,16 @@ export const cancelMCPOAuth = (serverName: string) => {
 
 export const config = () => `${BASE_URL}/api/config`;
 
+/* ── Admin Config ───────────────────────────────────────────────────── */
+export const adminConfigList = () => `${BASE_URL}/api/admin/config`;
+export const adminConfigBase = () => `${BASE_URL}/api/admin/config/base`;
+export const adminConfig = (principalType: string, principalId: string) =>
+  `${BASE_URL}/api/admin/config/${principalType}/${principalId}`;
+export const adminConfigFields = (principalType: string, principalId: string) =>
+  `${BASE_URL}/api/admin/config/${principalType}/${principalId}/fields`;
+export const adminConfigActive = (principalType: string, principalId: string) =>
+  `${BASE_URL}/api/admin/config/${principalType}/${principalId}/active`;
+
 export const prompts = () => `${BASE_URL}/api/prompts`;
 
 export const addPromptToGroup = (groupId: string) =>
