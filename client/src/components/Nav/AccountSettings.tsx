@@ -3,6 +3,7 @@ import * as Select from '@ariakit/react/select';
 import { FileText, LogOut, ShieldCheck, ScrollText, ShieldEllipsis } from 'lucide-react';
 import { SystemRoles } from 'librechat-data-provider';
 import { LinkIcon, GearIcon, DropdownMenuSeparator, Avatar } from '@librechat/client';
+import { useNavigate } from 'react-router-dom';
 import { MyFilesModal } from '~/components/Chat/Input/Files/MyFilesModal';
 import { useGetStartupConfig, useGetUserBalance } from '~/data-provider';
 import { useAuthContext } from '~/hooks/AuthContext';
@@ -11,6 +12,7 @@ import Settings from './Settings';
 
 function AccountSettings() {
   const localize = useLocalize();
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthContext();
   const { data: startupConfig } = useGetStartupConfig();
   const balanceQuery = useGetUserBalance({
@@ -122,7 +124,7 @@ function AccountSettings() {
             <DropdownMenuSeparator />
             <Select.SelectItem
               value=""
-              onClick={() => (window.location.href = '/d/admin')}
+              onClick={() => navigate('/d/admin')}
               className="select-item text-sm"
             >
               <ShieldEllipsis className="icon-md" aria-hidden="true" />

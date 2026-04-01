@@ -57,8 +57,18 @@ export default function SectionEditor({
   const handleSave = useCallback(() => {
     if (parsedValue != null) {
       onSave(parsedValue);
+      return;
     }
-  }, [parsedValue, onSave]);
+
+    // Treat an empty editor (no JSON content, no parse error) as a reset request.
+    if (!editorText.trim()) {
+      if (window.confirm(`Remove all overrides for "${section}"? The YAML base config will apply.`)) {
+        onReset();
+        setEditorText('');
+        setEditing(false);
+      }
+    }
+  }, [parsedValue, editorText, onSave, onReset, section]);
 
   const handleReset = useCallback(() => {
     if (window.confirm(`Remove all overrides for "${section}"? The YAML base config will apply.`)) {
@@ -116,7 +126,7 @@ export default function SectionEditor({
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium uppercase tracking-wide text-text-secondary">
-            YAML Base Config {!hasOverride && '(active)'}
+            Base Config (from YAML) {!hasOverride && '(active)'}
           </span>
           {hasOverride && (
             <span className="text-xs text-text-secondary">(overridden)</span>
