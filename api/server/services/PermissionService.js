@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { isEnabled } = require('@librechat/api');
-const { getTransactionSupport, logger } = require('@librechat/data-schemas');
+const { getTransactionSupport, logger, tenantSafeBulkWrite } = require('@librechat/data-schemas');
 const { ResourceType, PrincipalType, PrincipalModel } = require('librechat-data-provider');
 const {
   entraIdPrincipalFeatureEnabled,
@@ -734,7 +734,7 @@ const bulkUpdateResourcePermissions = async ({
     }
 
     if (bulkWrites.length > 0) {
-      await AclEntry.bulkWrite(bulkWrites, sessionOptions);
+      await tenantSafeBulkWrite(AclEntry, bulkWrites, sessionOptions);
     }
 
     const deleteQueries = [];
@@ -790,7 +790,13 @@ const bulkUpdateResourcePermissions = async ({
     return results;
   } catch (error) {
     if (shouldEndSession && supportsTransactions) {
-      await localSession.abortTransaction();
+      try {
+        await localSession.abortTransaction();
+      } catch (abortError) {
+        logger.error(
+          `[PermissionService.bulkUpdateResourcePermissions] Failed to abort transaction: ${abortError.message}`,
+        );
+      }
     }
     logger.error(`[PermissionService.bulkUpdateResourcePermissions] Error: ${error.message}`);
     throw error;

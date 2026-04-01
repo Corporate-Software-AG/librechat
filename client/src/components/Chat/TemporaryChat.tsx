@@ -18,12 +18,6 @@ export function TemporaryChat() {
   const endpointConfig = endpointsConfig?.[conversation?.endpoint ?? ''];
   const forced = endpointConfig?.temporaryChat === true;
 
-  const temporaryBadge = {
-    id: 'temporary',
-    atom: store.isTemporary,
-    isAvailable: true,
-  };
-
   const handleBadgeToggle = useRecoilCallback(
     () => () => {
       if (forced) {
@@ -46,7 +40,7 @@ export function TemporaryChat() {
       <TooltipAnchor
         description={
           forced
-            ? localize('com_ui_temporary') + ' (always on)'
+            ? localize('com_ui_temporary_forced')
             : localize('com_ui_temporary')
         }
         render={

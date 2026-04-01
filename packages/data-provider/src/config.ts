@@ -372,6 +372,8 @@ export const endpointSchema = baseEndpointSchema.merge(
       .optional(),
     directEndpoint: z.boolean().optional(),
     titleMessageRole: z.enum(['system', 'user', 'assistant']).optional(),
+    localInference: z.boolean().optional(),
+    localBaseURL: z.string().optional(),
   }),
 );
 

@@ -2981,9 +2981,10 @@ html {
 /*
  * ASKIA Light — CSS Theme Overrides
  *
- * This file is injected into index.html via <link> and loaded AFTER the main
- * LibreChat stylesheet. Any CSS custom properties declared here override the
- * defaults from style.css.
+ * These overrides are appended to the main LibreChat stylesheet (style.css).
+ * They set CSS custom properties for the ASKIA brand color palette.
+ * A separate file (public/assets/style-overrides.css) is also linked in
+ * index.html to allow runtime/deploy-time branding injection.
  *
  * Primary brand color: #2d6586 (teal blue)
  * Palette derived from that base:

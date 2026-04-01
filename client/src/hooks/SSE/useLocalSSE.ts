@@ -20,8 +20,7 @@
 import { useEffect, useRef } from 'react';
 import { v4 } from 'uuid';
 import { useSetRecoilState } from 'recoil';
-import { Constants } from 'librechat-data-provider';
-import type { TMessage, TSubmission } from 'librechat-data-provider';
+import type { TSubmission } from 'librechat-data-provider';
 import type { EventHandlerParams } from './useEventHandlers';
 import store from '~/store';
 
@@ -131,7 +130,6 @@ export default function useLocalSSE(
         const decoder = new TextDecoder();
         let buffer = '';
         let fullText = '';
-        let chunkCount = 0;
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -154,7 +152,6 @@ export default function useLocalSSE(
               const delta = chunk.choices?.[0]?.delta?.content;
               if (delta) {
                 fullText += delta;
-                chunkCount++;
 
                 // Update the response message in-place
                 const msgs = getMessages();

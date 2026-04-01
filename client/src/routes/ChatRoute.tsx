@@ -72,8 +72,6 @@ export default function ChatRoute() {
   useEffect(() => {
     if (forcedTemporary) {
       setDefaultTemporary(true);
-    } else {
-      setDefaultTemporary(false);
     }
   }, [forcedTemporary, setDefaultTemporary]);
 

@@ -199,7 +199,7 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
       // Upload directly to companion app for local RAG processing
       try {
         const formData = new FormData();
-        formData.append('file', extendedFile.file as File, encodeURIComponent(filename));
+        formData.append('file', extendedFile.file as File, filename);
         formData.append('purpose', 'assistants');
         if (conversation?.conversationId) {
           formData.append('conversation_id', conversation.conversationId);
@@ -253,7 +253,7 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
     const formData = new FormData();
     formData.append('endpoint', endpoint);
     formData.append('endpointType', endpointType ?? '');
-    formData.append('file', extendedFile.file as File, encodeURIComponent(filename));
+    formData.append('file', extendedFile.file as File, filename);
     formData.append('file_id', extendedFile.file_id);
 
     const width = extendedFile.width ?? 0;
