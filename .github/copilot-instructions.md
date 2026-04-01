@@ -7,17 +7,17 @@
 - **Minimal changes**: Only modify files when absolutely necessary
 - **Well-documented**: Every change is documented here with rationale
 - **Upstream-compatible**: Changes are isolated to avoid merge conflicts
-- **`main` branch**: Tracks upstream `danny-avila/LibreChat` (do not commit here)
-- **`askia` branch**: Contains all ASKIA customizations (this branch)
+- **`main` branch**: Contains all ASKIA customizations (this branch — the deployable branch)
+- **`upstream` branch**: Mirrors upstream `danny-avila/LibreChat` (never commit here)
 
 ---
 
 ## Branch Strategy
 
 ```
-main          ← Syncs with upstream danny-avila/LibreChat (keep clean!)
+upstream      ← Mirrors danny-avila/LibreChat (keep clean! never commit)
   │
-  └── askia   ← ASKIA customizations (make changes here)
+  └── main   ← ASKIA customizations (make changes here, this is the deployable branch)
 ```
 
 ### Syncing with Upstream
@@ -26,16 +26,16 @@ main          ← Syncs with upstream danny-avila/LibreChat (keep clean!)
 # Add upstream remote (one time)
 git remote add upstream https://github.com/danny-avila/LibreChat.git
 
-# Sync main with upstream
-git checkout main
+# Sync the upstream mirror
+git checkout upstream
 git pull upstream main
-git push origin main
+git push origin upstream
 
-# Rebase askia onto updated main
-git checkout askia
-git rebase main
-# Resolve any conflicts in the ~11 customized files
-git push origin askia --force-with-lease
+# Rebase main (our customizations) onto updated upstream
+git checkout main
+git rebase upstream
+# Resolve any conflicts in the customized files
+git push origin main --force-with-lease
 ```
 
 ---
