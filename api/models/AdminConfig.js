@@ -54,7 +54,7 @@ const upsertAdminConfig = async (principalType, principalId, data) => {
 };
 
 /**
- * Patch a single section in overrides (deep-merge at section level).
+ * Patch a single section in overrides (replaces the entire section value).
  * @param {string} principalType
  * @param {string} principalId
  * @param {{ section: string, value: unknown }} data

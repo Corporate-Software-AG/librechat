@@ -141,8 +141,8 @@ export default function SectionEditor({
   }, [formDirty, formDraft]);
 
   const switchToForm = useCallback(() => {
-    // Parse current JSON into form draft
-    if (jsonEditing && parsedValue && typeof parsedValue === 'object') {
+    // Parse current JSON into form draft; reject arrays as they break form components
+    if (jsonEditing && parsedValue && typeof parsedValue === 'object' && !Array.isArray(parsedValue)) {
       setFormDraft(parsedValue as Record<string, unknown>);
     }
     setViewMode('form');

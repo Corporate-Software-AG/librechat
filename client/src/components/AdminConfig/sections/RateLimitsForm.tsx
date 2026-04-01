@@ -44,8 +44,15 @@ function CategoryRow({
   data: RateLimitCategory;
   onChange: (val: RateLimitCategory) => void;
 }) {
-  const update = (key: keyof RateLimitCategory, val: number) => {
-    onChange({ ...data, [key]: val });
+  const update = (key: keyof RateLimitCategory, rawVal: string) => {
+    const num = rawVal === '' ? undefined : Number(rawVal);
+    if (num === undefined || isNaN(num)) {
+      const updated = { ...data };
+      delete updated[key];
+      onChange(updated);
+    } else {
+      onChange({ ...data, [key]: num });
+    }
   };
 
   return (
@@ -61,7 +68,7 @@ function CategoryRow({
             type="number"
             min={0}
             value={String(data.ipMax ?? '')}
-            onChange={(e) => update('ipMax', Number(e.target.value))}
+            onChange={(e) => update('ipMax', e.target.value)}
             placeholder="—"
           />
         </div>
@@ -71,7 +78,7 @@ function CategoryRow({
             type="number"
             min={1}
             value={String(data.ipWindowInMinutes ?? '')}
-            onChange={(e) => update('ipWindowInMinutes', Number(e.target.value))}
+            onChange={(e) => update('ipWindowInMinutes', e.target.value)}
             placeholder="—"
           />
         </div>
@@ -81,7 +88,7 @@ function CategoryRow({
             type="number"
             min={0}
             value={String(data.userMax ?? '')}
-            onChange={(e) => update('userMax', Number(e.target.value))}
+            onChange={(e) => update('userMax', e.target.value)}
             placeholder="—"
           />
         </div>
@@ -91,7 +98,7 @@ function CategoryRow({
             type="number"
             min={1}
             value={String(data.userWindowInMinutes ?? '')}
-            onChange={(e) => update('userWindowInMinutes', Number(e.target.value))}
+            onChange={(e) => update('userWindowInMinutes', e.target.value)}
             placeholder="—"
           />
         </div>

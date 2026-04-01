@@ -159,7 +159,7 @@ function EndpointEditor({
   const [draft, setDraft] = useState<CustomEndpoint>(
     endpoint ?? {
       name: '',
-      apiKey: '${PLACEHOLDER_KEY}',
+      apiKey: '',
       baseURL: '',
       models: { default: [], fetch: false },
     },

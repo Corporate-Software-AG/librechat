@@ -91,7 +91,7 @@ function ModelSpecEditor({
       name: '',
       label: '',
       description: '',
-      preset: { endpoint: '', model: '' },
+      preset: { endpoint: null },
     },
   );
   const [newMcpServer, setNewMcpServer] = useState('');
@@ -125,7 +125,11 @@ function ModelSpecEditor({
     if (!draft.name.trim() || !draft.label.trim()) {
       return;
     }
-    onSave(draft);
+    // Normalize preset: remove empty-string fields so they don't override YAML defaults
+    const normalizedPreset = Object.fromEntries(
+      Object.entries(draft.preset).filter(([, v]) => v !== '' && v !== undefined),
+    ) as ModelSpec['preset'];
+    onSave({ ...draft, preset: normalizedPreset });
   };
 
   return (
