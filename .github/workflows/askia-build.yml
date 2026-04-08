@@ -1,0 +1,107 @@
+# Build and push the ASKIA-branded LibreChat image on push to `askia` branch.
+# PRs targeting `askia` get a build-only validation (no push).
+#
+# Branding assets and the apply-branding.sh script live in this repo under
+# config/branding/ and scripts/. No cross-repo checkout needed.
+
+name: ASKIA — Build LibreChat Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Custom image tag (default: git SHA + latest)"
+        required: false
+        default: ""
+
+env:
+  ACR_SERVER: ${{ vars.EXTERNAL_ACR_SERVER }}
+  IMAGE_NAME: librechat
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # 1. Check out the librechat fork (this repo)
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Apply branding patches (assets, i18n, links)
+      - name: Apply branding
+        run: bash scripts/apply-branding.sh
+
+      # 3. Set image tags
+      - name: Set image metadata
+        id: meta
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          CUSTOM_TAG="${{ github.event.inputs.tag || '' }}"
+          IMAGE_BASE="${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}"
+
+          # Always tag with SHA
+          TAGS="${IMAGE_BASE}:${SHA}"
+
+          # On push to askia (not PR), also tag as :latest
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            TAGS="${TAGS},${IMAGE_BASE}:latest"
+          fi
+
+          # Optional custom tag
+          if [[ -n "${CUSTOM_TAG}" ]]; then
+            TAGS="${TAGS},${IMAGE_BASE}:${CUSTOM_TAG}"
+          fi
+
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "push=${{ github.event_name != 'pull_request' }}" >> "$GITHUB_OUTPUT"
+
+          echo "Image: ${IMAGE_BASE}"
+          echo "Tags: ${TAGS}"
+          echo "Push: ${{ github.event_name != 'pull_request' }}"
+
+      # 4. Log in to ACR (skip on PR — no push needed)
+      - name: Log in to ACR
+        if: steps.meta.outputs.push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ACR_SERVER }}
+          username: ${{ secrets.EXTERNAL_ACR_USERNAME }}
+          password: ${{ secrets.EXTERNAL_ACR_PASSWORD }}
+
+      # 5. Set up Docker Buildx for better caching
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 6. Build (and push on merge to askia)
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ steps.meta.outputs.push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 7. Summary
+      - name: Summary
+        run: |
+          echo "### LibreChat ASKIA Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ steps.meta.outputs.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pushed:** ${{ steps.meta.outputs.push }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.meta.outputs.push }}" == "true" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Image ready. Deploy with:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "azd env set LIBRECHAT_IMAGE ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.sha }}" >> $GITHUB_STEP_SUMMARY
+            echo "azd up" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
