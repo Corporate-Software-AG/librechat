@@ -28,6 +28,7 @@ const { getLogStores } = require('~/cache');
 async function configureOpenId(app) {
   logger.info('Configuring OpenID Connect...');
   const sessionExpiry = Number(process.env.SESSION_EXPIRY) || DEFAULT_SESSION_EXPIRY;
+  const useSecureCookie = shouldUseSecureCookie();
   const sessionOptions = {
     secret: process.env.OPENID_SESSION_SECRET,
     resave: false,
@@ -35,8 +36,8 @@ async function configureOpenId(app) {
     store: getLogStores(CacheKeys.OPENID_SESSION),
     cookie: {
       maxAge: sessionExpiry,
-      secure: shouldUseSecureCookie(),
-      sameSite: shouldUseSecureCookie() ? 'none' : 'lax',
+      secure: useSecureCookie,
+      sameSite: useSecureCookie ? 'none' : 'lax',
     },
   };
   app.use(session(sessionOptions));
@@ -99,6 +100,7 @@ const configureSocialLogins = async (app) => {
   ) {
     logger.info('Configuring SAML Connect...');
     const sessionExpiry = Number(process.env.SESSION_EXPIRY) || DEFAULT_SESSION_EXPIRY;
+    const useSecureCookie = shouldUseSecureCookie();
     const sessionOptions = {
       secret: process.env.SAML_SESSION_SECRET,
       resave: false,
@@ -106,8 +108,8 @@ const configureSocialLogins = async (app) => {
       store: getLogStores(CacheKeys.SAML_SESSION),
       cookie: {
         maxAge: sessionExpiry,
-        secure: shouldUseSecureCookie(),
-        sameSite: shouldUseSecureCookie() ? 'none' : 'lax',
+        secure: useSecureCookie,
+        sameSite: useSecureCookie ? 'none' : 'lax',
       },
     };
     app.use(session(sessionOptions));
