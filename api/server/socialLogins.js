@@ -36,6 +36,7 @@ async function configureOpenId(app) {
     cookie: {
       maxAge: sessionExpiry,
       secure: shouldUseSecureCookie(),
+      sameSite: shouldUseSecureCookie() ? 'none' : 'lax',
     },
   };
   app.use(session(sessionOptions));
@@ -106,6 +107,7 @@ const configureSocialLogins = async (app) => {
       cookie: {
         maxAge: sessionExpiry,
         secure: shouldUseSecureCookie(),
+        sameSite: shouldUseSecureCookie() ? 'none' : 'lax',
       },
     };
     app.use(session(sessionOptions));
