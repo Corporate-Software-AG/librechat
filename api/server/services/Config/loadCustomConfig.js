@@ -9,6 +9,7 @@ const {
   paramSettings,
   EImageOutputType,
   agentParamSettings,
+  extractEnvVariable,
   validateSettingDefinitions,
 } = require('librechat-data-provider');
 
@@ -16,6 +17,96 @@ const projectRoot = path.resolve(__dirname, '..', '..', '..', '..');
 const defaultConfigPath = path.resolve(projectRoot, 'librechat.yaml');
 
 let i = 0;
+
+const PRIVATE_ENDPOINT_NAMES = new Set([
+  'GPT-OSS (Private)',
+  'Apertus (Private)',
+  'Phi-4 Mini (Private)',
+]);
+
+function parseCsvEnv(value) {
+  return (value ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function hasResolvedHttpBaseUrl(endpoint) {
+  const resolvedBaseUrl = extractEnvVariable(endpoint?.baseURL ?? '');
+  return /^https?:\/\//i.test(resolvedBaseUrl) && !resolvedBaseUrl.includes('${');
+}
+
+function curateEnvironmentSpecificConfig(config) {
+  const customEndpoints = config.endpoints?.custom;
+  if (!Array.isArray(customEndpoints)) {
+    return;
+  }
+
+  const foundryModels = parseCsvEnv(process.env.FOUNDRY_CHAT_MODELS);
+  const foundryTitleModel = (process.env.FOUNDRY_TITLE_MODEL ?? '').trim();
+  const availablePrivateEndpoints = new Set(
+    customEndpoints
+      .filter((endpoint) => PRIVATE_ENDPOINT_NAMES.has(endpoint.name) && hasResolvedHttpBaseUrl(endpoint))
+      .map((endpoint) => endpoint.name),
+  );
+
+  const foundryEndpoint = customEndpoints.find((endpoint) => endpoint.name === 'Foundry');
+  if (foundryEndpoint && foundryModels.length > 0) {
+    foundryEndpoint.models.default = foundryModels;
+
+    if (foundryTitleModel && foundryModels.includes(foundryTitleModel)) {
+      foundryEndpoint.titleModel = foundryTitleModel;
+    } else if (!foundryModels.includes(foundryEndpoint.titleModel)) {
+      foundryEndpoint.titleModel = foundryModels[0];
+    }
+  }
+
+  config.endpoints.custom = customEndpoints.filter((endpoint) => {
+    if (!PRIVATE_ENDPOINT_NAMES.has(endpoint.name)) {
+      return true;
+    }
+    return availablePrivateEndpoints.has(endpoint.name);
+  });
+
+  if (Array.isArray(config.modelSpecs?.list)) {
+    config.modelSpecs.list = config.modelSpecs.list.filter((spec) => {
+      const presetEndpoint = spec?.preset?.endpoint;
+      const presetModel = spec?.preset?.model;
+
+      if (presetEndpoint === 'Foundry' && foundryModels.length > 0) {
+        return foundryModels.includes(presetModel);
+      }
+
+      if (PRIVATE_ENDPOINT_NAMES.has(presetEndpoint)) {
+        return availablePrivateEndpoints.has(presetEndpoint);
+      }
+
+      return true;
+    });
+  }
+
+  if (Array.isArray(config.endpoints?.agents?.allowedProviders)) {
+    config.endpoints.agents.allowedProviders = config.endpoints.agents.allowedProviders.filter(
+      (provider) => !PRIVATE_ENDPOINT_NAMES.has(provider) || availablePrivateEndpoints.has(provider),
+    );
+  }
+
+  if (config.fileConfig?.endpoints) {
+    for (const endpointName of PRIVATE_ENDPOINT_NAMES) {
+      if (!availablePrivateEndpoints.has(endpointName)) {
+        delete config.fileConfig.endpoints[endpointName];
+      }
+    }
+  }
+
+  if (
+    config.memory?.agent?.provider === 'Foundry' &&
+    foundryModels.length > 0 &&
+    !foundryModels.includes(config.memory.agent.model)
+  ) {
+    config.memory.agent.model = foundryModels[0];
+  }
+}
 
 /**
  * Load custom configuration files and caches the object if the `cache` field at root is true.
@@ -38,6 +129,22 @@ async function loadCustomConfig(printConfig = true) {
       i === 0 && i++;
       return null;
     }
+
+    if (typeof customConfig === 'string') {
+      try {
+        customConfig = yaml.load(customConfig);
+      } catch (parseError) {
+        i === 0 && logger.info(`Failed to parse the YAML config from ${configPath}`, parseError);
+        i === 0 && i++;
+        return null;
+      }
+    }
+
+    if (customConfig.reason || customConfig.stack) {
+      i === 0 && logger.error('Config file YAML format is invalid:', customConfig);
+      i === 0 && i++;
+      return null;
+    }
   } else {
     customConfig = loadYaml(configPath);
     if (!customConfig) {
@@ -51,16 +158,6 @@ async function loadCustomConfig(printConfig = true) {
 
     if (customConfig.reason || customConfig.stack) {
       i === 0 && logger.error('Config file YAML format is invalid:', customConfig);
-      i === 0 && i++;
-      return null;
-    }
-  }
-
-  if (typeof customConfig === 'string') {
-    try {
-      customConfig = yaml.load(customConfig);
-    } catch (parseError) {
-      i === 0 && logger.info(`Failed to parse the YAML config from ${configPath}`, parseError);
       i === 0 && i++;
       return null;
     }
@@ -119,15 +216,15 @@ https://www.librechat.ai/docs/configuration/stt_tts`);
     }
   }
 
-  (customConfig.endpoints?.custom ?? [])
+  const parsedConfig = result.data;
+
+  curateEnvironmentSpecificConfig(parsedConfig);
+
+  (parsedConfig.endpoints?.custom ?? [])
     .filter((endpoint) => endpoint.customParams)
     .forEach((endpoint) => parseCustomParams(endpoint.name, endpoint.customParams));
 
-  if (result.data.modelSpecs) {
-    customConfig.modelSpecs = result.data.modelSpecs;
-  }
-
-  return customConfig;
+  return parsedConfig;
 }
 
 // Validate and fill out missing values for custom parameters
@@ -143,7 +240,7 @@ function parseCustomParams(endpointName, customParams) {
   if (!validEndpoints.has(paramEndpoint)) {
     throw new Error(
       `defaultParamsEndpoint of "${endpointName}" endpoint is invalid. ` +
-        `Valid options are ${Array.from(validEndpoints).join(', ')}`,
+      `Valid options are ${Array.from(validEndpoints).join(', ')}`,
     );
   }
 
@@ -160,7 +257,7 @@ function parseCustomParams(endpointName, customParams) {
   if (paramKeys.some((key) => !validKeys.has(key))) {
     throw new Error(
       `paramDefinitions of "${endpointName}" endpoint contains invalid key(s). ` +
-        `Valid parameter keys are ${Array.from(validKeys).join(', ')}`,
+      `Valid parameter keys are ${Array.from(validKeys).join(', ')}`,
     );
   }
 

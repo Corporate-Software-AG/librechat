@@ -1,7 +1,6 @@
 jest.mock('axios');
 jest.mock('~/cache/getLogStores');
 jest.mock('@librechat/api', () => ({
-  ...jest.requireActual('@librechat/api'),
   loadYaml: jest.fn(),
 }));
 jest.mock('librechat-data-provider', () => {
@@ -218,6 +217,49 @@ describe('loadCustomConfig', () => {
     expect(logger.info).toHaveBeenCalledWith('Custom config file loaded:');
     expect(logger.info).toHaveBeenCalledWith(JSON.stringify(mockConfig, null, 2));
     expect(logger.debug).toHaveBeenCalledWith('Custom config:', mockConfig);
+  });
+
+  it('should return parsed MCP config with env placeholders resolved', async () => {
+    process.env.CONFIG_PATH = 'validConfig.yaml';
+    process.env.WIKI_0_MCP_URL = 'https://wiki.internal';
+    process.env.WIKI_0_MCP_API_KEY = 'wiki-secret';
+    process.env.DRUPAL_WIKI_SEARCH_API_KEY = 'search-secret';
+
+    const mockConfig = {
+      version: '1.0',
+      cache: true,
+      mcpServers: {
+        'beer-wiki': {
+          type: 'streamable-http',
+          url: '${WIKI_0_MCP_URL}/mcp',
+          headers: {
+            Authorization: 'Bearer ${WIKI_0_MCP_API_KEY}',
+          },
+        },
+        drupal: {
+          type: 'streamable-http',
+          url: 'https://example.com/mcp',
+          apiKey: {
+            source: 'admin',
+            authorization_type: 'custom',
+            custom_header: 'api-key',
+            key: '${DRUPAL_WIKI_SEARCH_API_KEY}',
+          },
+        },
+      },
+    };
+
+    loadYaml.mockReturnValueOnce(mockConfig);
+
+    const result = await loadCustomConfig();
+
+    expect(result.mcpServers['beer-wiki'].url).toBe('https://wiki.internal/mcp');
+    expect(result.mcpServers['beer-wiki'].headers.Authorization).toBe('Bearer wiki-secret');
+    expect(result.mcpServers.drupal.apiKey.key).toBe('search-secret');
+
+    delete process.env.WIKI_0_MCP_URL;
+    delete process.env.WIKI_0_MCP_API_KEY;
+    delete process.env.DRUPAL_WIKI_SEARCH_API_KEY;
   });
 
   describe('parseCustomParams', () => {

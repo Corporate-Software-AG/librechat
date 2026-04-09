@@ -31,8 +31,7 @@ const AGGREGATE_KEY = '__all__';
 
 export class ServerConfigsCacheRedisAggregateKey
   extends BaseRegistryCache
-  implements IServerConfigsRepositoryInterface
-{
+  implements IServerConfigsRepositoryInterface {
   protected readonly cache: Keyv;
   private writeLock: Promise<void> = Promise.resolve();
 
@@ -96,15 +95,19 @@ export class ServerConfigsCacheRedisAggregateKey
       }
     }
 
-    const result =
+    const raw =
       ((await this.cache.get(AGGREGATE_KEY)) as Record<string, ParsedServerConfig> | undefined) ??
       {};
 
+    // Defensive: never expose the aggregate key itself as a server name.
+    // Can occur when stale/corrupt Redis data wraps the map in an extra level.
+    delete raw[AGGREGATE_KEY];
+
     if (ttl > 0) {
-      this.localSnapshot = result;
+      this.localSnapshot = raw;
       this.localSnapshotExpiry = Date.now() + ttl;
     }
-    return result;
+    return raw;
   }
 
   public async get(serverName: string): Promise<ParsedServerConfig | undefined> {

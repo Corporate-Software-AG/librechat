@@ -2,6 +2,10 @@ import { z } from 'zod';
 import { TokenExchangeMethodEnum } from './types/agents';
 import { extractEnvVariable } from './utils';
 
+const envStringSchema = z.string().transform((val: string) => extractEnvVariable(val));
+const envUrlSchema = z.string().transform((val: string) => extractEnvVariable(val)).pipe(z.string().url());
+const envHeadersSchema = z.record(z.string(), envStringSchema);
+
 const BaseOptionsSchema = z.object({
   /** Display name for the MCP server - only letters, numbers, and spaces allowed */
   title: z
@@ -44,17 +48,17 @@ const BaseOptionsSchema = z.object({
   oauth: z
     .object({
       /** OAuth authorization endpoint (optional - can be auto-discovered) */
-      authorization_url: z.string().url().optional(),
+      authorization_url: envUrlSchema.optional(),
       /** OAuth token endpoint (optional - can be auto-discovered) */
-      token_url: z.string().url().optional(),
+      token_url: envUrlSchema.optional(),
       /** OAuth client ID (optional - can use dynamic registration) */
-      client_id: z.string().optional(),
+      client_id: envStringSchema.optional(),
       /** OAuth client secret (optional - can use dynamic registration) */
-      client_secret: z.string().optional(),
+      client_secret: envStringSchema.optional(),
       /** OAuth scopes to request */
-      scope: z.string().optional(),
+      scope: envStringSchema.optional(),
       /** OAuth redirect URI (defaults to /api/mcp/{serverName}/oauth/callback) */
-      redirect_uri: z.string().url().optional(),
+      redirect_uri: envUrlSchema.optional(),
       /** Token exchange method */
       token_exchange_method: z.nativeEnum(TokenExchangeMethodEnum).optional(),
       /** Supported grant types (defaults to ['authorization_code', 'refresh_token']) */
@@ -68,13 +72,13 @@ const BaseOptionsSchema = z.object({
       /** Skip code challenge validation and force S256 (useful for providers like AWS Cognito that support S256 but don't advertise it) */
       skip_code_challenge_check: z.boolean().optional(),
       /** OAuth revocation endpoint (optional - can be auto-discovered) */
-      revocation_endpoint: z.string().url().optional(),
+      revocation_endpoint: envUrlSchema.optional(),
       /** OAuth revocation endpoint authentication methods supported (optional - can be auto-discovered) */
       revocation_endpoint_auth_methods_supported: z.array(z.string()).optional(),
     })
     .optional(),
   /** Custom headers to send with OAuth requests (registration, discovery, token exchange, etc.) */
-  oauth_headers: z.record(z.string(), z.string()).optional(),
+  oauth_headers: envHeadersSchema.optional(),
   /**
    * API Key authentication configuration for SSE and Streamable HTTP transports
    * - source: 'admin' means the key is provided by admin and shared by all users
@@ -83,7 +87,7 @@ const BaseOptionsSchema = z.object({
   apiKey: z
     .object({
       /** API key value (only for admin-provided mode, stored encrypted) */
-      key: z.string().optional(),
+      key: envStringSchema.optional(),
       /** Whether key is provided by admin or each user */
       source: z.enum(['admin', 'user']),
       /** How to format the authorization header */
@@ -162,7 +166,7 @@ export const WebSocketOptionsSchema = BaseOptionsSchema.extend({
 
 export const SSEOptionsSchema = BaseOptionsSchema.extend({
   type: z.literal('sse').default('sse'),
-  headers: z.record(z.string(), z.string()).optional(),
+  headers: envHeadersSchema.optional(),
   url: z
     .string()
     .transform((val: string) => extractEnvVariable(val))
@@ -180,7 +184,7 @@ export const SSEOptionsSchema = BaseOptionsSchema.extend({
 
 export const StreamableHTTPOptionsSchema = BaseOptionsSchema.extend({
   type: z.union([z.literal('streamable-http'), z.literal('http')]),
-  headers: z.record(z.string(), z.string()).optional(),
+  headers: envHeadersSchema.optional(),
   url: z
     .string()
     .transform((val: string) => extractEnvVariable(val))

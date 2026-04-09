@@ -24,6 +24,30 @@ describe('MCPServerUserInputSchema', () => {
       expect(userResult.success).toBe(false);
       delete process.env.FAKE_SECRET;
     });
+
+    it('should resolve env vars in admin MCP headers and apiKey fields', () => {
+      process.env.MCP_SHARED_KEY = 'shared-secret';
+      const adminResult = SSEOptionsSchema.safeParse({
+        type: 'sse',
+        url: 'https://mcp-server.com/sse',
+        headers: {
+          Authorization: 'Bearer ${MCP_SHARED_KEY}',
+        },
+        apiKey: {
+          source: 'admin',
+          authorization_type: 'custom',
+          custom_header: 'X-Api-Key',
+          key: '${MCP_SHARED_KEY}',
+        },
+      });
+
+      expect(adminResult.success).toBe(true);
+      if (adminResult.success) {
+        expect(adminResult.data.headers?.Authorization).toBe('Bearer shared-secret');
+        expect(adminResult.data.apiKey?.key).toBe('shared-secret');
+      }
+      delete process.env.MCP_SHARED_KEY;
+    });
   });
 
   describe('env variable rejection', () => {
